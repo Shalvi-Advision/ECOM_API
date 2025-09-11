@@ -8,7 +8,9 @@ const bannerSchema = new mongoose.Schema({
   },
   banner_img: {
     type: String,
-    required: true
+    required: function() {
+      return !this.media_url; // Only required if media_url is not provided
+    }
   },
   is_active: {
     type: String,
