@@ -138,8 +138,10 @@ PORT=5000
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database_name
 JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRE=7d
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:3000,https://your-frontend-domain.com
 ```
+
+**Note**: `FRONTEND_URL` is optional. If not provided, the API will accept requests from any origin. For production, specify your frontend domain(s) separated by commas.
 
 ## Data Upload
 
