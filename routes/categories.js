@@ -135,13 +135,18 @@ router.post('/', adminAuth, [
       });
     }
 
+    // Generate a unique ID for the category
+    const idcategory_master = `CAT${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    
     const category = new Category({
+      idcategory_master,
       category_name,
       dept_id,
       store_code,
       sequence_id,
       category_description,
-      category_img,
+      image_link: category_img || 'https://via.placeholder.com/200x200?text=Category',
+      category_bg_color: '#FFFFFF',
       is_active
     });
 

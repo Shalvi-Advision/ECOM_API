@@ -83,12 +83,17 @@ router.post('/', adminAuth, [
       });
     }
 
+    // Generate a unique ID for the department
+    const department_id = `DEPT${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    
     const department = new Department({
+      department_id,
       department_name,
-      sequence_id,
-      department_description,
-      department_img,
-      is_active
+      dept_type_id: '1', // Default department type
+      dept_no_of_col: 12, // Default number of columns
+      store_code: req.body.store_code || 'DEFAULT',
+      image_link: department_img || 'https://via.placeholder.com/200x200?text=Department',
+      sequence_id
     });
 
     await department.save();

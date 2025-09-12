@@ -112,12 +112,14 @@ router.post('/', adminAuth, [
       });
     }
 
+    // Generate a unique ID for the subcategory
+    const idsub_category_master = `SUBCAT${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    
     const subCategory = new SubCategory({
+      idsub_category_master,
       sub_category_name,
       category_id,
-      sub_category_description,
-      sub_category_img,
-      is_active
+      main_category_name: category.category_name || 'Unknown Category'
     });
 
     await subCategory.save();
