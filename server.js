@@ -59,6 +59,7 @@ app.use('/api/pincodes', require('./routes/pincodes'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/migration', require('./routes/migration'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
