@@ -48,17 +48,17 @@ const productSchema = new mongoose.Schema({
     default: 'Y'
   },
   dept_id: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     required: true,
     ref: 'Department'
   },
   category_id: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     required: true,
     ref: 'Category'
   },
   sub_category_id: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     required: true,
     ref: 'SubCategory'
   },

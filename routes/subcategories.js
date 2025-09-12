@@ -3,6 +3,7 @@ const router = express.Router();
 const SubCategory = require('../models/SubCategory');
 const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
+const { populateSubCategoryWithCategory } = require('../utils/populateHelpers');
 
 // Get all subcategories
 router.get('/', async (req, res) => {
@@ -13,13 +14,17 @@ router.get('/', async (req, res) => {
     if (category_id) filter.category_id = category_id;
 
     const subCategories = await SubCategory.find(filter)
-      .populate('category_id', 'category_name')
       .sort({ sub_category_name: 1 })
       .lean();
 
+    // Populate category data manually
+    const populatedSubCategories = await Promise.all(
+      subCategories.map(subCategory => populateSubCategoryWithCategory(subCategory))
+    );
+
     res.json({
       success: true,
-      data: subCategories
+      data: populatedSubCategories
     });
   } catch (error) {
     res.status(500).json({

@@ -3,6 +3,7 @@ const router = express.Router();
 const Product = require('../models/Product');
 const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
+const { populateProductsReferences } = require('../utils/populateHelpers');
 
 // Get all products with pagination and filters
 router.get('/', async (req, res) => {

@@ -40,8 +40,7 @@ router.get('/', async (req, res) => {
 // Get category by ID
 router.get('/:id', async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id)
-      .populate('dept_id', 'department_name');
+    const category = await Category.findById(req.params.id).lean();
 
     if (!category) {
       return res.status(404).json({
@@ -50,9 +49,12 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    // Populate department data manually
+    const populatedCategory = await populateCategoryWithDepartment(category);
+
     res.json({
       success: true,
-      data: category
+      data: populatedCategory
     });
   } catch (error) {
     res.status(500).json({
@@ -72,13 +74,17 @@ router.get('/department/:deptId', async (req, res) => {
     if (store_code) filter.store_code = store_code;
 
     const categories = await Category.find(filter)
-      .populate('dept_id', 'department_name')
       .sort({ sequence_id: 1 })
       .lean();
 
+    // Populate department data manually
+    const populatedCategories = await Promise.all(
+      categories.map(category => populateCategoryWithDepartment(category))
+    );
+
     res.json({
       success: true,
-      data: categories
+      data: populatedCategories
     });
   } catch (error) {
     res.status(500).json({
@@ -94,7 +100,7 @@ router.get('/department/:deptId', async (req, res) => {
 // Create new category (Admin only)
 router.post('/', adminAuth, [
   body('category_name').notEmpty().withMessage('Category name is required'),
-  body('dept_id').isMongoId().withMessage('Valid department ID is required'),
+  body('dept_id').notEmpty().withMessage('Department ID is required'),
   body('store_code').notEmpty().withMessage('Store code is required'),
   body('sequence_id').isInt({ min: 1 }).withMessage('Valid sequence ID is required')
 ], async (req, res) => {
@@ -118,8 +124,14 @@ router.post('/', adminAuth, [
       is_active = 'Y'
     } = req.body;
 
-    // Check if department exists
-    const department = await Department.findById(dept_id);
+    // Check if department exists (handle both ObjectId and string ID)
+    let department;
+    if (mongoose.Types.ObjectId.isValid(dept_id)) {
+      department = await Department.findById(dept_id);
+    } else {
+      department = await Department.findOne({ department_id: dept_id });
+    }
+    
     if (!department) {
       return res.status(400).json({
         success: false,
@@ -289,18 +301,22 @@ router.get('/admin/all', adminAuth, async (req, res) => {
     }
 
     const categories = await Category.find(filter)
-      .populate('dept_id', 'department_name')
       .sort({ sequence_id: 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .lean();
+
+    // Populate department data manually
+    const populatedCategories = await Promise.all(
+      categories.map(category => populateCategoryWithDepartment(category))
+    );
 
     const total = await Category.countDocuments(filter);
 
     res.json({
       success: true,
       data: {
-        categories,
+        categories: populatedCategories,
         pagination: {
           current_page: parseInt(page),
           total_pages: Math.ceil(total / limit),
