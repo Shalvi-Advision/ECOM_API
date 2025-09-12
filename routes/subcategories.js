@@ -241,19 +241,48 @@ router.get('/admin/all', adminAuth, async (req, res) => {
       ];
     }
 
+    // First get subcategories without population to avoid ObjectId casting errors
     const subCategories = await SubCategory.find(filter)
-      .populate('category_id', 'category_name')
       .sort({ sub_category_name: 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .lean();
+
+    // Manually populate category data to handle invalid ObjectIds gracefully
+    const Category = require('../models/Category');
+    const populatedSubCategories = await Promise.all(
+      subCategories.map(async (subCategory) => {
+        try {
+          // Try to populate category_id if it's a valid ObjectId
+          if (subCategory.category_id && typeof subCategory.category_id === 'string' && subCategory.category_id.match(/^[0-9a-fA-F]{24}$/)) {
+            const category = await Category.findById(subCategory.category_id).select('category_name').lean();
+            return {
+              ...subCategory,
+              category_id: category || { _id: subCategory.category_id, category_name: 'Unknown Category' }
+            };
+          } else {
+            // Handle invalid ObjectId or string references
+            return {
+              ...subCategory,
+              category_id: { _id: subCategory.category_id, category_name: `Invalid Reference: ${subCategory.category_id}` }
+            };
+          }
+        } catch (error) {
+          // If population fails, return with error indication
+          return {
+            ...subCategory,
+            category_id: { _id: subCategory.category_id, category_name: 'Population Error' }
+          };
+        }
+      })
+    );
 
     const total = await SubCategory.countDocuments(filter);
 
     res.json({
       success: true,
       data: {
-        subCategories,
+        subCategories: populatedSubCategories,
         pagination: {
           current_page: parseInt(page),
           total_pages: Math.ceil(total / limit),

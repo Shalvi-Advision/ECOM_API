@@ -14,9 +14,13 @@ router.post('/fix-subcategory-objectids', adminAuth, async (req, res) => {
     // Get all categories to create mapping
     const categories = await Category.find({});
     const categoryMapping = {};
+    const categoryIdMapping = {}; // Map _id to _id for direct ObjectId references
     
     categories.forEach(cat => {
+      // Map idcategory_master (string) to _id (ObjectId)
       categoryMapping[cat.idcategory_master] = cat._id;
+      // Map _id string to _id ObjectId for direct references
+      categoryIdMapping[cat._id.toString()] = cat._id;
     });
     
     console.log(`📋 Created mapping for ${Object.keys(categoryMapping).length} categories`);
@@ -25,21 +29,30 @@ router.post('/fix-subcategory-objectids', adminAuth, async (req, res) => {
     const subCategories = await SubCategory.find({});
     let updatedCount = 0;
     let errorCount = 0;
+    let skippedCount = 0;
     const errors = [];
     
     for (const subCategory of subCategories) {
       try {
-        // Check if category_id is already an ObjectId
         if (subCategory.category_id && typeof subCategory.category_id === 'string') {
-          // Try to find the corresponding ObjectId
-          const objectId = categoryMapping[subCategory.category_id];
+          let targetObjectId = null;
           
-          if (objectId) {
+          // First try direct ObjectId mapping (for valid ObjectId strings)
+          if (subCategory.category_id.match(/^[0-9a-fA-F]{24}$/)) {
+            targetObjectId = categoryIdMapping[subCategory.category_id];
+          }
+          
+          // If not found, try idcategory_master mapping (for string IDs like "94")
+          if (!targetObjectId) {
+            targetObjectId = categoryMapping[subCategory.category_id];
+          }
+          
+          if (targetObjectId) {
             await SubCategory.updateOne(
               { _id: subCategory._id },
               { 
                 $set: { 
-                  category_id: objectId 
+                  category_id: targetObjectId 
                 } 
               }
             );
@@ -48,6 +61,9 @@ router.post('/fix-subcategory-objectids', adminAuth, async (req, res) => {
             console.log(`⚠️  Warning: Category ID ${subCategory.category_id} not found for subcategory ${subCategory.sub_category_name}`);
             errors.push(`Category ID ${subCategory.category_id} not found for subcategory ${subCategory.sub_category_name}`);
           }
+        } else if (subCategory.category_id && typeof subCategory.category_id === 'object') {
+          // Already an ObjectId, skip
+          skippedCount++;
         }
       } catch (error) {
         errorCount++;
@@ -55,7 +71,7 @@ router.post('/fix-subcategory-objectids', adminAuth, async (req, res) => {
       }
     }
     
-    console.log(`✅ Migration completed: Updated ${updatedCount} subcategories`);
+    console.log(`✅ Migration completed: Updated ${updatedCount} subcategories, Skipped ${skippedCount}, Errors ${errorCount}`);
     
     res.json({
       success: true,
@@ -63,6 +79,7 @@ router.post('/fix-subcategory-objectids', adminAuth, async (req, res) => {
       data: {
         totalSubcategories: subCategories.length,
         updatedCount,
+        skippedCount,
         errorCount,
         errors: errors.slice(0, 10) // Only return first 10 errors
       }
