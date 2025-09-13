@@ -303,24 +303,9 @@ router.get('/', async (req, res) => {
 
     const filter = {};
 
-    // Handle dept_id filtering - support both ObjectId and string department_id
+    // Handle dept_id filtering - now dept_id is a string that matches department_id
     if (dept_id) {
-      if (mongoose.Types.ObjectId.isValid(dept_id)) {
-        // If it's a valid ObjectId, use it directly
-        filter.dept_id = dept_id;
-      } else {
-        // If it's a string, find the department by department_id and use its _id
-        const department = await Department.findOne({ department_id: dept_id });
-        if (department) {
-          filter.dept_id = department._id;
-        } else {
-          // If department not found, return empty result
-          return res.json({
-            success: true,
-            data: []
-          });
-        }
-      }
+      filter.dept_id = dept_id;
     }
 
     if (store_code) filter.store_code = store_code;
@@ -348,11 +333,26 @@ router.get('/', async (req, res) => {
 });
 
 // Get category by ID
-router.get('/:id', async (req, res) => {
+// Get category by ID
+router.get(':/:id', async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id)
-      .populate('dept_id', 'department_name');
-
+    const id = req.params.id;
+    let category;
+    
+    // Handle both ObjectId and string idcategory_master
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // Try to find by ObjectId first
+      category = await Category.findById(id).populate('dept_id', 'department_name');
+      
+      // If not found by ObjectId, try by idcategory_master
+      if (!category) {
+        category = await Category.findOne({ idcategory_master: id }).populate('dept_id', 'department_name');
+      }
+    } else {
+      // If not a valid ObjectId, search by idcategory_master
+      category = await Category.findOne({ idcategory_master: id }).populate('dept_id', 'department_name');
+    }
+    
     if (!category) {
       return res.status(404).json({
         success: false,
@@ -371,9 +371,7 @@ router.get('/:id', async (req, res) => {
       error: error.message
     });
   }
-});
-
-// Get categories by department
+});// Get categories by department
 router.get('/department/:deptId', async (req, res) => {
   try {
     const { store_code } = req.query;
@@ -381,23 +379,8 @@ router.get('/department/:deptId', async (req, res) => {
 
     const filter = {};
 
-    // Handle dept_id parameter - support both ObjectId and string department_id
-    if (mongoose.Types.ObjectId.isValid(deptId)) {
-      // If it's a valid ObjectId, use it directly
-      filter.dept_id = deptId;
-    } else {
-      // If it's a string, find the department by department_id and use its _id
-      const department = await Department.findOne({ department_id: deptId });
-      if (department) {
-        filter.dept_id = department._id;
-      } else {
-        // If department not found, return empty result
-        return res.json({
-          success: true,
-          data: []
-        });
-      }
-    }
+    // Handle dept_id parameter - now dept_id is a string that matches department_id
+    filter.dept_id = deptId;
 
     if (store_code) filter.store_code = store_code;
 

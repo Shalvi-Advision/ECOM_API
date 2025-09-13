@@ -11,15 +11,10 @@ const isValidObjectId = (id) => {
 // Helper function to populate department data
 const populateDepartment = async (deptId) => {
   if (!deptId) return null;
-  
+
   try {
-    // If it's already an ObjectId, use it directly
-    if (isValidObjectId(deptId)) {
-      return await Department.findById(deptId).select('department_name image_link sequence_id').lean();
-    }
-    
-    // If it's a string ID, find by department_id field
-    return await Department.findOne({ department_id: deptId }).select('department_name image_link sequence_id').lean();
+    // Since dept_id is now a string that matches department_id, always search by department_id
+    return await Department.findOne({ department_id: deptId }).select('department_name image_link sequence_id department_id').lean();
   } catch (error) {
     console.error('Error populating department:', error);
     return null;
@@ -108,12 +103,13 @@ const populateProductsReferences = async (products) => {
 // Helper function to populate category with department
 const populateCategoryWithDepartment = async (category) => {
   if (!category) return category;
-  
+
   try {
     if (category.dept_id) {
+      // dept_id is now a string that matches department_id
       category.dept_id = await populateDepartment(category.dept_id);
     }
-    
+
     return category;
   } catch (error) {
     console.error('Error populating category with department:', error);

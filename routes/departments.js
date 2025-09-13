@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Department = require('../models/Department');
 const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
@@ -349,7 +350,19 @@ router.get('/', async (req, res) => {
 // Get department by ID
 router.get('/:id', async (req, res) => {
   try {
-    const department = await Department.findById(req.params.id);
+    const id = req.params.id;
+    let department;
+
+    // Handle both ObjectId and string department_id
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // Try to find by ObjectId first
+      department = await Department.findById(id);
+    }
+
+    // If not found by ObjectId or if it's not a valid ObjectId, search by department_id
+    if (!department) {
+      department = await Department.findOne({ department_id: id });
+    }
 
     if (!department) {
       return res.status(404).json({

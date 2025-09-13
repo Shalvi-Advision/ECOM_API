@@ -10,9 +10,8 @@ const categorySchema = new mongoose.Schema({
     required: true
   },
   dept_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref: 'Department'
+    type: String,
+    required: true
   },
   sequence_id: {
     type: Number,
@@ -41,5 +40,6 @@ const categorySchema = new mongoose.Schema({
 // Index for better query performance
 categorySchema.index({ dept_id: 1, store_code: 1 });
 categorySchema.index({ category_name: 1 });
+categorySchema.index({ idcategory_master: 1 });
 
 module.exports = mongoose.model('Category', categorySchema);
