@@ -8,7 +8,7 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:5000/api",
+      "value": "https://ecom-api-ozl0.onrender.com/api",
       "type": "string"
     },
     {
@@ -1087,6 +1087,28 @@
               "path": ["products", "admin", "statistics"]
             },
             "description": "Get product statistics (Admin only)"
+          }
+        },
+        {
+          "name": "Migrate Category Dept IDs (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/migration/fix-category-dept-ids",
+              "host": ["{{base_url}}"],
+              "path": ["migration", "fix-category-dept-ids"]
+            },
+            "description": "Migrate category dept_id from ObjectId to string department_id (Admin only)"
           }
         }
       ]
