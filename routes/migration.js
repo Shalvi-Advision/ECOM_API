@@ -105,7 +105,7 @@ router.get('/test-subcategories', adminAuth, async (req, res) => {
       category_id: sc.category_id,
       category_id_type: typeof sc.category_id
     }));
-    
+
     res.json({
       success: true,
       data: categoryIds
@@ -114,6 +114,90 @@ router.get('/test-subcategories', adminAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Test failed',
+      error: error.message
+    });
+  }
+});
+
+// Migration endpoint to fix category dept_id references
+router.post('/fix-category-dept-ids', adminAuth, async (req, res) => {
+  try {
+    const Department = require('../models/Department');
+
+    // Get all categories
+    const categories = await Category.find({});
+    console.log(`Found ${categories.length} categories to migrate`);
+
+    let updatedCount = 0;
+    let errorCount = 0;
+    const results = [];
+
+    for (const category of categories) {
+      try {
+        // Check if dept_id is an ObjectId
+        if (category.dept_id && typeof category.dept_id === 'object' && category.dept_id.constructor.name === 'ObjectId') {
+          // Find the department by ObjectId to get its department_id
+          const department = await Department.findById(category.dept_id);
+
+          if (department) {
+            // Update the category's dept_id to be the string department_id
+            await Category.findByIdAndUpdate(category._id, {
+              dept_id: department.department_id
+            });
+            updatedCount++;
+            results.push({
+              category: category.idcategory_master,
+              old_dept_id: category.dept_id.toString(),
+              new_dept_id: department.department_id,
+              status: 'updated'
+            });
+          } else {
+            results.push({
+              category: category.idcategory_master,
+              dept_id: category.dept_id.toString(),
+              status: 'department_not_found'
+            });
+            errorCount++;
+          }
+        } else if (typeof category.dept_id === 'string') {
+          results.push({
+            category: category.idcategory_master,
+            dept_id: category.dept_id,
+            status: 'already_string'
+          });
+        } else {
+          results.push({
+            category: category.idcategory_master,
+            dept_id: category.dept_id,
+            status: 'unexpected_type'
+          });
+          errorCount++;
+        }
+      } catch (error) {
+        results.push({
+          category: category.idcategory_master,
+          error: error.message,
+          status: 'error'
+        });
+        errorCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Category dept_id migration completed',
+      stats: {
+        total: categories.length,
+        updated: updatedCount,
+        errors: errorCount
+      },
+      results: results.slice(0, 10) // Return first 10 results
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Migration failed',
       error: error.message
     });
   }
