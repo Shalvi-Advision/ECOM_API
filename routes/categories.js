@@ -332,27 +332,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get category by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const id = req.params.id;
-
-    // Simple test - just return the ID for now
-    res.json({
-      success: true,
-      message: `Route working! Received ID: ${id}`,
-      route: 'GET /:id',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error',
-      error: error.message
-    });
-  }
-});
-
 // Get categories by department
 router.get('/department/:deptId', async (req, res) => {
   try {
@@ -383,6 +362,27 @@ router.get('/department/:deptId', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching categories by department',
+      error: error.message
+    });
+  }
+});
+
+// Get category by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    // Simple test - just return the ID for now
+    res.json({
+      success: true,
+      message: `Route working! Received ID: ${id}`,
+      route: 'GET /:id',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error',
       error: error.message
     });
   }
