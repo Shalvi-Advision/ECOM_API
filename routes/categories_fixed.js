@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Category = require('../models/Category');
 const Department = require('../models/Department');
+const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
 const { populateCategoryWithDepartment } = require('../utils/populateHelpers');

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Category = require('../models/Category');
 const Department = require('../models/Department');
 const { body, validationResult } = require('express-validator');
@@ -299,9 +300,29 @@ const { populateCategoryWithDepartment } = require('../utils/populateHelpers');
 router.get('/', async (req, res) => {
   try {
     const { dept_id, store_code } = req.query;
-    
+
     const filter = {};
-    if (dept_id) filter.dept_id = dept_id;
+
+    // Handle dept_id filtering - support both ObjectId and string department_id
+    if (dept_id) {
+      if (mongoose.Types.ObjectId.isValid(dept_id)) {
+        // If it's a valid ObjectId, use it directly
+        filter.dept_id = dept_id;
+      } else {
+        // If it's a string, find the department by department_id and use its _id
+        const department = await Department.findOne({ department_id: dept_id });
+        if (department) {
+          filter.dept_id = department._id;
+        } else {
+          // If department not found, return empty result
+          return res.json({
+            success: true,
+            data: []
+          });
+        }
+      }
+    }
+
     if (store_code) filter.store_code = store_code;
 
     const categories = await Category.find(filter)
@@ -356,18 +377,42 @@ router.get('/:id', async (req, res) => {
 router.get('/department/:deptId', async (req, res) => {
   try {
     const { store_code } = req.query;
-    
-    const filter = { dept_id: req.params.deptId };
+    const deptId = req.params.deptId;
+
+    const filter = {};
+
+    // Handle dept_id parameter - support both ObjectId and string department_id
+    if (mongoose.Types.ObjectId.isValid(deptId)) {
+      // If it's a valid ObjectId, use it directly
+      filter.dept_id = deptId;
+    } else {
+      // If it's a string, find the department by department_id and use its _id
+      const department = await Department.findOne({ department_id: deptId });
+      if (department) {
+        filter.dept_id = department._id;
+      } else {
+        // If department not found, return empty result
+        return res.json({
+          success: true,
+          data: []
+        });
+      }
+    }
+
     if (store_code) filter.store_code = store_code;
 
     const categories = await Category.find(filter)
-      .populate('dept_id', 'department_name')
       .sort({ sequence_id: 1 })
       .lean();
 
+    // Populate department data manually
+    const populatedCategories = await Promise.all(
+      categories.map(category => populateCategoryWithDepartment(category))
+    );
+
     res.json({
       success: true,
-      data: categories
+      data: populatedCategories
     });
   } catch (error) {
     res.status(500).json({
