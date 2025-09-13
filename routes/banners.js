@@ -4,6 +4,314 @@ const { body, validationResult } = require('express-validator');
 const Banner = require('../models/Banner');
 const adminAuth = require('../middleware/adminAuth');
 
+/**
+ * @swagger
+ * /banners:
+ *   get:
+ *     tags:
+ *       - Banners
+ *     summary: Get active banners
+ *     description: Retrieve active banners with placement and filtering options
+ *     parameters:
+ *       - in: query
+ *         name: store_code
+ *         schema:
+ *           type: string
+ *         description: Filter banners by store code
+ *       - in: query
+ *         name: banner_type_id
+ *         schema:
+ *           type: integer
+ *         description: Filter banners by type ID
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: string
+ *           default: homepage
+ *         description: Page placement
+ *       - in: query
+ *         name: position
+ *         schema:
+ *           type: string
+ *           default: top
+ *         description: Position on page
+ *       - in: query
+ *         name: platform
+ *         schema:
+ *           type: string
+ *           default: web
+ *         description: Platform (web, mobile, etc.)
+ *       - in: query
+ *         name: rotation_type
+ *         schema:
+ *           type: string
+ *           default: carousel
+ *         description: Banner rotation type
+ *     responses:
+ *       200:
+ *         description: Banners retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Banner'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   post:
+ *     tags:
+ *       - Banners
+ *     summary: Create a new banner (Admin only)
+ *     description: Create a new banner for the application
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - banner_name
+ *               - banner_image
+ *               - store_code
+ *             properties:
+ *               banner_name:
+ *                 type: string
+ *                 example: "Festival Sale Banner"
+ *               banner_image:
+ *                 type: string
+ *                 example: "https://example.com/banner.jpg"
+ *               banner_type_id:
+ *                 type: integer
+ *                 example: 1
+ *               store_code:
+ *                 type: string
+ *                 example: "AME"
+ *               is_active:
+ *                 type: boolean
+ *                 example: true
+ *               sequence_id:
+ *                 type: number
+ *                 example: 1
+ *               placement:
+ *                 type: object
+ *                 properties:
+ *                   page:
+ *                     type: string
+ *                     example: "homepage"
+ *                   position:
+ *                     type: string
+ *                     example: "top"
+ *                   platform:
+ *                     type: string
+ *                     example: "web"
+ *               rotation_type:
+ *                 type: string
+ *                 example: "carousel"
+ *               validity:
+ *                 type: object
+ *                 properties:
+ *                   start:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2024-01-01T00:00:00Z"
+ *                   end:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2024-12-31T23:59:59Z"
+ *               target_url:
+ *                 type: string
+ *                 example: "https://example.com/sale"
+ *               click_count:
+ *                 type: number
+ *                 example: 0
+ *     responses:
+ *       201:
+ *         description: Banner created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Banner created successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Banner'
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /banners/{id}:
+ *   get:
+ *     tags:
+ *       - Banners
+ *     summary: Get banner by ID
+ *     description: Retrieve a specific banner by its ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Banner ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j5"
+ *     responses:
+ *       200:
+ *         description: Banner retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Banner'
+ *       404:
+ *         description: Banner not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   put:
+ *     tags:
+ *       - Banners
+ *     summary: Update banner (Admin only)
+ *     description: Update an existing banner
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Banner ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j5"
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Banner'
+ *     responses:
+ *       200:
+ *         description: Banner updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Banner updated successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Banner'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Banner not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   delete:
+ *     tags:
+ *       - Banners
+ *     summary: Delete banner (Admin only)
+ *     description: Delete a banner from the system
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Banner ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j5"
+ *     responses:
+ *       200:
+ *         description: Banner deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Banner deleted successfully"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Banner not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // Get all active banners in new format
 router.get('/', async (req, res) => {
   try {

@@ -7,6 +7,305 @@ const Product = require('../models/Product');
 const User = require('../models/User');
 const adminAuth = require('../middleware/adminAuth');
 
+/**
+ * @swagger
+ * /orders:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Get user orders
+ *     description: Retrieve orders for the authenticated user
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of orders per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+ *         description: Filter by order status
+ *     responses:
+ *       200:
+ *         description: Orders retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     orders:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Order'
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         current_page:
+ *                           type: integer
+ *                           example: 1
+ *                         total_pages:
+ *                           type: integer
+ *                           example: 5
+ *                         total_orders:
+ *                           type: integer
+ *                           example: 50
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   post:
+ *     tags:
+ *       - Orders
+ *     summary: Create new order
+ *     description: Create a new order for the authenticated user
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - items
+ *               - delivery_address
+ *               - payment_mode
+ *               - store_code
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - product_id
+ *                     - quantity
+ *                   properties:
+ *                     product_id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j2"
+ *                     quantity:
+ *                       type: integer
+ *                       minimum: 1
+ *                       example: 2
+ *               delivery_address:
+ *                 type: object
+ *                 required:
+ *                   - name
+ *                   - phone
+ *                   - address_line_1
+ *                   - city
+ *                   - state
+ *                   - pincode
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     example: "John Doe"
+ *                   phone:
+ *                     type: string
+ *                     example: "1234567890"
+ *                   address_line_1:
+ *                     type: string
+ *                     example: "123 Main Street"
+ *                   address_line_2:
+ *                     type: string
+ *                     example: "Apt 4B"
+ *                   city:
+ *                     type: string
+ *                     example: "Mumbai"
+ *                   state:
+ *                     type: string
+ *                     example: "Maharashtra"
+ *                   pincode:
+ *                     type: string
+ *                     example: "400001"
+ *               payment_mode:
+ *                 type: string
+ *                 example: "Online Payment"
+ *               store_code:
+ *                 type: string
+ *                 example: "AME"
+ *               delivery_slot:
+ *                 type: string
+ *                 example: "slot_id"
+ *               notes:
+ *                 type: string
+ *                 example: "Delivery instructions"
+ *     responses:
+ *       201:
+ *         description: Order created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Order created successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Order'
+ *       400:
+ *         description: Validation errors or insufficient stock
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /orders/{id}:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Get order by ID
+ *     description: Retrieve a specific order by its ID for the authenticated user
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j3"
+ *     responses:
+ *       200:
+ *         description: Order retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Order'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Order not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   put:
+ *     tags:
+ *       - Orders
+ *     summary: Cancel order
+ *     description: Cancel an order for the authenticated user
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j3"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - reason
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 example: "Change of mind"
+ *     responses:
+ *       200:
+ *         description: Order cancelled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Order cancelled successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Order'
+ *       400:
+ *         description: Order cannot be cancelled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Order not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // Middleware to verify JWT token
 const authenticateToken = async (req, res, next) => {
   try {

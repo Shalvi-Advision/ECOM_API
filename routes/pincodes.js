@@ -5,6 +5,409 @@ const PincodeStore = require('../models/PincodeStore');
 const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
 
+/**
+ * @swagger
+ * /pincodes:
+ *   get:
+ *     tags:
+ *       - Pincodes
+ *     summary: Get all pincodes
+ *     description: Retrieve a list of all pincodes with optional filtering
+ *     parameters:
+ *       - in: query
+ *         name: is_enabled
+ *         schema:
+ *           type: string
+ *         description: Filter by enabled status
+ *     responses:
+ *       200:
+ *         description: Pincodes retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "64f1a2b3c4d5e6f7g8h9i0j8"
+ *                       pincode:
+ *                         type: string
+ *                         example: "421002"
+ *                       is_enabled:
+ *                         type: string
+ *                         example: "Enabled"
+ *                       city:
+ *                         type: string
+ *                         example: "Kalyan"
+ *                       state:
+ *                         type: string
+ *                         example: "Maharashtra"
+ *                       delivery_charge:
+ *                         type: number
+ *                         example: 0
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   post:
+ *     tags:
+ *       - Pincodes
+ *     summary: Create a new pincode (Admin only)
+ *     description: Create a new pincode for delivery service
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - pincode
+ *             properties:
+ *               pincode:
+ *                 type: string
+ *                 example: "421002"
+ *               is_enabled:
+ *                 type: string
+ *                 example: "Enabled"
+ *               city:
+ *                 type: string
+ *                 example: "Kalyan"
+ *               state:
+ *                 type: string
+ *                 example: "Maharashtra"
+ *               delivery_charge:
+ *                 type: number
+ *                 example: 0
+ *     responses:
+ *       201:
+ *         description: Pincode created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Pincode created successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j8"
+ *                     pincode:
+ *                       type: string
+ *                       example: "421002"
+ *                     is_enabled:
+ *                       type: string
+ *                       example: "Enabled"
+ *                     city:
+ *                       type: string
+ *                       example: "Kalyan"
+ *                     state:
+ *                       type: string
+ *                       example: "Maharashtra"
+ *                     delivery_charge:
+ *                       type: number
+ *                       example: 0
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /pincodes/check/{pincode}:
+ *   get:
+ *     tags:
+ *       - Pincodes
+ *     summary: Check pincode serviceability
+ *     description: Check if a pincode is serviceable for delivery
+ *     parameters:
+ *       - in: path
+ *         name: pincode
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Pincode to check
+ *         example: "421002"
+ *     responses:
+ *       200:
+ *         description: Pincode serviceability checked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     is_serviceable:
+ *                       type: boolean
+ *                       example: true
+ *                     pincode:
+ *                       type: object
+ *                       properties:
+ *                         pincode:
+ *                           type: string
+ *                           example: "421002"
+ *                         is_enabled:
+ *                           type: string
+ *                           example: "Enabled"
+ *                         city:
+ *                           type: string
+ *                           example: "Kalyan"
+ *                         state:
+ *                           type: string
+ *                           example: "Maharashtra"
+ *                     available_stores:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           store_code:
+ *                             type: string
+ *                             example: "AME"
+ *                           store_name:
+ *                             type: string
+ *                             example: "Ambernath Store"
+ *       404:
+ *         description: Pincode not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /pincodes/id/{id}:
+ *   get:
+ *     tags:
+ *       - Pincodes
+ *     summary: Get pincode by ID
+ *     description: Retrieve a specific pincode by its ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Pincode ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j8"
+ *     responses:
+ *       200:
+ *         description: Pincode retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j8"
+ *                     pincode:
+ *                       type: string
+ *                       example: "421002"
+ *                     is_enabled:
+ *                       type: string
+ *                       example: "Enabled"
+ *                     city:
+ *                       type: string
+ *                       example: "Kalyan"
+ *                     state:
+ *                       type: string
+ *                       example: "Maharashtra"
+ *                     delivery_charge:
+ *                       type: number
+ *                       example: 0
+ *       404:
+ *         description: Pincode not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   put:
+ *     tags:
+ *       - Pincodes
+ *     summary: Update pincode (Admin only)
+ *     description: Update an existing pincode
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Pincode ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j8"
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pincode:
+ *                 type: string
+ *                 example: "421002"
+ *               is_enabled:
+ *                 type: string
+ *                 example: "Enabled"
+ *               city:
+ *                 type: string
+ *                 example: "Updated City"
+ *               state:
+ *                 type: string
+ *                 example: "Updated State"
+ *               delivery_charge:
+ *                 type: number
+ *                 example: 50
+ *     responses:
+ *       200:
+ *         description: Pincode updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Pincode updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j8"
+ *                     pincode:
+ *                       type: string
+ *                       example: "421002"
+ *                     is_enabled:
+ *                       type: string
+ *                       example: "Enabled"
+ *                     city:
+ *                       type: string
+ *                       example: "Updated City"
+ *                     state:
+ *                       type: string
+ *                       example: "Updated State"
+ *                     delivery_charge:
+ *                       type: number
+ *                       example: 50
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Pincode not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   delete:
+ *     tags:
+ *       - Pincodes
+ *     summary: Delete pincode (Admin only)
+ *     description: Delete a pincode from the system
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Pincode ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j8"
+ *     responses:
+ *       200:
+ *         description: Pincode deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Pincode deleted successfully"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Pincode not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // Get all pincodes
 router.get('/', async (req, res) => {
   try {

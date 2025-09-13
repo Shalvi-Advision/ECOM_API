@@ -5,6 +5,237 @@ const PaymentStatus = require('../models/PaymentStatus');
 const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
 
+/**
+ * @swagger
+ * /payments/modes:
+ *   get:
+ *     tags:
+ *       - Payments
+ *     summary: Get payment modes
+ *     description: Retrieve all available payment modes
+ *     responses:
+ *       200:
+ *         description: Payment modes retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "64f1a2b3c4d5e6f7g8h9i0j9"
+ *                       idpayment_mode:
+ *                         type: string
+ *                         example: "1"
+ *                       payment_mode:
+ *                         type: string
+ *                         example: "Online Payment"
+ *                       is_enabled:
+ *                         type: string
+ *                         example: "Yes"
+ *                       sequence_id:
+ *                         type: number
+ *                         example: 1
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   post:
+ *     tags:
+ *       - Payments
+ *     summary: Create payment mode (Admin only)
+ *     description: Create a new payment mode
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - payment_mode
+ *             properties:
+ *               payment_mode:
+ *                 type: string
+ *                 example: "Credit Card"
+ *               is_enabled:
+ *                 type: string
+ *                 example: "Yes"
+ *               sequence_id:
+ *                 type: number
+ *                 example: 1
+ *     responses:
+ *       201:
+ *         description: Payment mode created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Payment mode created successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j9"
+ *                     idpayment_mode:
+ *                       type: string
+ *                       example: "1"
+ *                     payment_mode:
+ *                       type: string
+ *                       example: "Credit Card"
+ *                     is_enabled:
+ *                       type: string
+ *                       example: "Yes"
+ *                     sequence_id:
+ *                       type: number
+ *                       example: 1
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /payments/statuses:
+ *   get:
+ *     tags:
+ *       - Payments
+ *     summary: Get payment statuses
+ *     description: Retrieve all available payment statuses
+ *     responses:
+ *       200:
+ *         description: Payment statuses retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "64f1a2b3c4d5e6f7g8h9i0j10"
+ *                       idpayment_status:
+ *                         type: string
+ *                         example: "1"
+ *                       payment_status:
+ *                         type: string
+ *                         example: "Pending"
+ *                       sequence_id:
+ *                         type: number
+ *                         example: 1
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   post:
+ *     tags:
+ *       - Payments
+ *     summary: Create payment status (Admin only)
+ *     description: Create a new payment status
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - payment_status
+ *             properties:
+ *               payment_status:
+ *                 type: string
+ *                 example: "Processing"
+ *               sequence_id:
+ *                 type: number
+ *                 example: 1
+ *     responses:
+ *       201:
+ *         description: Payment status created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Payment status created successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j10"
+ *                     idpayment_status:
+ *                       type: string
+ *                       example: "1"
+ *                     payment_status:
+ *                       type: string
+ *                       example: "Processing"
+ *                     sequence_id:
+ *                       type: number
+ *                       example: 1
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // Get all payment modes
 router.get('/modes', async (req, res) => {
   try {

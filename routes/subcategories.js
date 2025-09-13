@@ -5,6 +5,410 @@ const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
 const { populateSubCategoryWithCategory } = require('../utils/populateHelpers');
 
+/**
+ * @swagger
+ * /subcategories:
+ *   get:
+ *     tags:
+ *       - Subcategories
+ *     summary: Get all subcategories
+ *     description: Retrieve a list of all subcategories with optional category filtering
+ *     parameters:
+ *       - in: query
+ *         name: category_id
+ *         schema:
+ *           type: string
+ *         description: Filter subcategories by category ID
+ *     responses:
+ *       200:
+ *         description: Subcategories retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "64f1a2b3c4d5e6f7g8h9i0j7"
+ *                       idsub_category_master:
+ *                         type: string
+ *                         example: "349"
+ *                       sub_category_name:
+ *                         type: string
+ *                         example: "Rice & Grains"
+ *                       category_id:
+ *                         type: string
+ *                         example: "89"
+ *                       sequence_id:
+ *                         type: number
+ *                         example: 1
+ *                       image_link:
+ *                         type: string
+ *                         example: "https://example.com/subcategory.jpg"
+ *                       sub_category_bg_color:
+ *                         type: string
+ *                         example: "#FF5733"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   post:
+ *     tags:
+ *       - Subcategories
+ *     summary: Create a new subcategory (Admin only)
+ *     description: Create a new subcategory in the catalog
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - sub_category_name
+ *               - category_id
+ *             properties:
+ *               sub_category_name:
+ *                 type: string
+ *                 example: "Rice & Grains"
+ *               category_id:
+ *                 type: string
+ *                 example: "89"
+ *               sequence_id:
+ *                 type: number
+ *                 example: 1
+ *               image_link:
+ *                 type: string
+ *                 example: "https://example.com/subcategory.jpg"
+ *               sub_category_bg_color:
+ *                 type: string
+ *                 example: "#FF5733"
+ *     responses:
+ *       201:
+ *         description: Subcategory created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Subcategory created successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j7"
+ *                     idsub_category_master:
+ *                       type: string
+ *                       example: "349"
+ *                     sub_category_name:
+ *                       type: string
+ *                       example: "Rice & Grains"
+ *                     category_id:
+ *                       type: string
+ *                       example: "89"
+ *                     sequence_id:
+ *                       type: number
+ *                       example: 1
+ *                     image_link:
+ *                       type: string
+ *                       example: "https://example.com/subcategory.jpg"
+ *                     sub_category_bg_color:
+ *                       type: string
+ *                       example: "#FF5733"
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /subcategories/{id}:
+ *   get:
+ *     tags:
+ *       - Subcategories
+ *     summary: Get subcategory by ID
+ *     description: Retrieve a specific subcategory by its ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Subcategory ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j7"
+ *     responses:
+ *       200:
+ *         description: Subcategory retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j7"
+ *                     idsub_category_master:
+ *                       type: string
+ *                       example: "349"
+ *                     sub_category_name:
+ *                       type: string
+ *                       example: "Rice & Grains"
+ *                     category_id:
+ *                       type: string
+ *                       example: "89"
+ *                     sequence_id:
+ *                       type: number
+ *                       example: 1
+ *                     image_link:
+ *                       type: string
+ *                       example: "https://example.com/subcategory.jpg"
+ *                     sub_category_bg_color:
+ *                       type: string
+ *                       example: "#FF5733"
+ *       404:
+ *         description: Subcategory not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   put:
+ *     tags:
+ *       - Subcategories
+ *     summary: Update subcategory (Admin only)
+ *     description: Update an existing subcategory
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Subcategory ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j7"
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sub_category_name:
+ *                 type: string
+ *                 example: "Updated Rice & Grains"
+ *               category_id:
+ *                 type: string
+ *                 example: "89"
+ *               sequence_id:
+ *                 type: number
+ *                 example: 2
+ *               image_link:
+ *                 type: string
+ *                 example: "https://example.com/updated.jpg"
+ *               sub_category_bg_color:
+ *                 type: string
+ *                 example: "#00FF00"
+ *     responses:
+ *       200:
+ *         description: Subcategory updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Subcategory updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j7"
+ *                     idsub_category_master:
+ *                       type: string
+ *                       example: "349"
+ *                     sub_category_name:
+ *                       type: string
+ *                       example: "Updated Rice & Grains"
+ *                     category_id:
+ *                       type: string
+ *                       example: "89"
+ *                     sequence_id:
+ *                       type: number
+ *                       example: 2
+ *                     image_link:
+ *                       type: string
+ *                       example: "https://example.com/updated.jpg"
+ *                     sub_category_bg_color:
+ *                       type: string
+ *                       example: "#00FF00"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Subcategory not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   delete:
+ *     tags:
+ *       - Subcategories
+ *     summary: Delete subcategory (Admin only)
+ *     description: Delete a subcategory from the catalog
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Subcategory ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j7"
+ *     responses:
+ *       200:
+ *         description: Subcategory deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Subcategory deleted successfully"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Subcategory not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /subcategories/category/{categoryId}:
+ *   get:
+ *     tags:
+ *       - Subcategories
+ *     summary: Get subcategories by category
+ *     description: Retrieve all subcategories belonging to a specific category
+ *     parameters:
+ *       - in: path
+ *         name: categoryId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *         example: "89"
+ *     responses:
+ *       200:
+ *         description: Subcategories retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "64f1a2b3c4d5e6f7g8h9i0j7"
+ *                       idsub_category_master:
+ *                         type: string
+ *                         example: "349"
+ *                       sub_category_name:
+ *                         type: string
+ *                         example: "Rice & Grains"
+ *                       category_id:
+ *                         type: string
+ *                         example: "89"
+ *                       sequence_id:
+ *                         type: number
+ *                         example: 1
+ *                       image_link:
+ *                         type: string
+ *                         example: "https://example.com/subcategory.jpg"
+ *                       sub_category_bg_color:
+ *                         type: string
+ *                         example: "#FF5733"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // Get all subcategories
 router.get('/', async (req, res) => {
   try {

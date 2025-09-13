@@ -6,6 +6,295 @@ const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
 const { populateCategoryWithDepartment } = require('../utils/populateHelpers');
 
+/**
+ * @swagger
+ * /categories:
+ *   get:
+ *     tags:
+ *       - Categories
+ *     summary: Get all categories
+ *     description: Retrieve a list of all categories with optional department and store filtering
+ *     parameters:
+ *       - in: query
+ *         name: dept_id
+ *         schema:
+ *           type: string
+ *         description: Filter categories by department ID
+ *       - in: query
+ *         name: store_code
+ *         schema:
+ *           type: string
+ *         description: Filter categories by store code
+ *     responses:
+ *       200:
+ *         description: Categories retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Category'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   post:
+ *     tags:
+ *       - Categories
+ *     summary: Create a new category (Admin only)
+ *     description: Create a new category in the catalog
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - category_name
+ *               - dept_id
+ *             properties:
+ *               category_name:
+ *                 type: string
+ *                 example: "Electronics"
+ *               dept_id:
+ *                 type: string
+ *                 example: "2"
+ *               sequence_id:
+ *                 type: number
+ *                 example: 1
+ *               store_code:
+ *                 type: string
+ *                 example: "AME"
+ *               no_of_col:
+ *                 type: string
+ *                 example: "12"
+ *               image_link:
+ *                 type: string
+ *                 example: "https://example.com/category.jpg"
+ *               category_bg_color:
+ *                 type: string
+ *                 example: "#FF5733"
+ *     responses:
+ *       201:
+ *         description: Category created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Category created successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Category'
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /categories/{id}:
+ *   get:
+ *     tags:
+ *       - Categories
+ *     summary: Get category by ID
+ *     description: Retrieve a specific category by its ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j4"
+ *     responses:
+ *       200:
+ *         description: Category retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Category'
+ *       404:
+ *         description: Category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   put:
+ *     tags:
+ *       - Categories
+ *     summary: Update category (Admin only)
+ *     description: Update an existing category
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j4"
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Category'
+ *     responses:
+ *       200:
+ *         description: Category updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Category updated successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Category'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   delete:
+ *     tags:
+ *       - Categories
+ *     summary: Delete category (Admin only)
+ *     description: Delete a category from the catalog
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j4"
+ *     responses:
+ *       200:
+ *         description: Category deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Category deleted successfully"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /categories/department/{deptId}:
+ *   get:
+ *     tags:
+ *       - Categories
+ *     summary: Get categories by department
+ *     description: Retrieve all categories belonging to a specific department
+ *     parameters:
+ *       - in: path
+ *         name: deptId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Department ID
+ *         example: "2"
+ *     responses:
+ *       200:
+ *         description: Categories retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Category'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // Get all categories
 router.get('/', async (req, res) => {
   try {

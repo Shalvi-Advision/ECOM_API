@@ -4,6 +4,328 @@ const Department = require('../models/Department');
 const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
 
+/**
+ * @swagger
+ * /departments:
+ *   get:
+ *     tags:
+ *       - Departments
+ *     summary: Get all departments
+ *     description: Retrieve a list of all departments
+ *     responses:
+ *       200:
+ *         description: Departments retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "64f1a2b3c4d5e6f7g8h9i0j6"
+ *                       department_id:
+ *                         type: string
+ *                         example: "2"
+ *                       department_name:
+ *                         type: string
+ *                         example: "Groceries"
+ *                       sequence_id:
+ *                         type: number
+ *                         example: 1
+ *                       image_link:
+ *                         type: string
+ *                         example: "https://example.com/dept.jpg"
+ *                       department_bg_color:
+ *                         type: string
+ *                         example: "#FF5733"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   post:
+ *     tags:
+ *       - Departments
+ *     summary: Create a new department (Admin only)
+ *     description: Create a new department in the catalog
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - department_name
+ *             properties:
+ *               department_name:
+ *                 type: string
+ *                 example: "Electronics"
+ *               sequence_id:
+ *                 type: number
+ *                 example: 1
+ *               image_link:
+ *                 type: string
+ *                 example: "https://example.com/dept.jpg"
+ *               department_bg_color:
+ *                 type: string
+ *                 example: "#FF5733"
+ *     responses:
+ *       201:
+ *         description: Department created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Department created successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j6"
+ *                     department_id:
+ *                       type: string
+ *                       example: "2"
+ *                     department_name:
+ *                       type: string
+ *                       example: "Electronics"
+ *                     sequence_id:
+ *                       type: number
+ *                       example: 1
+ *                     image_link:
+ *                       type: string
+ *                       example: "https://example.com/dept.jpg"
+ *                     department_bg_color:
+ *                       type: string
+ *                       example: "#FF5733"
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /departments/{id}:
+ *   get:
+ *     tags:
+ *       - Departments
+ *     summary: Get department by ID
+ *     description: Retrieve a specific department by its ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Department ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j6"
+ *     responses:
+ *       200:
+ *         description: Department retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j6"
+ *                     department_id:
+ *                       type: string
+ *                       example: "2"
+ *                     department_name:
+ *                       type: string
+ *                       example: "Groceries"
+ *                     sequence_id:
+ *                       type: number
+ *                       example: 1
+ *                     image_link:
+ *                       type: string
+ *                       example: "https://example.com/dept.jpg"
+ *                     department_bg_color:
+ *                       type: string
+ *                       example: "#FF5733"
+ *       404:
+ *         description: Department not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   put:
+ *     tags:
+ *       - Departments
+ *     summary: Update department (Admin only)
+ *     description: Update an existing department
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Department ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j6"
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               department_name:
+ *                 type: string
+ *                 example: "Updated Electronics"
+ *               sequence_id:
+ *                 type: number
+ *                 example: 2
+ *               image_link:
+ *                 type: string
+ *                 example: "https://example.com/updated.jpg"
+ *               department_bg_color:
+ *                 type: string
+ *                 example: "#00FF00"
+ *     responses:
+ *       200:
+ *         description: Department updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Department updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64f1a2b3c4d5e6f7g8h9i0j6"
+ *                     department_id:
+ *                       type: string
+ *                       example: "2"
+ *                     department_name:
+ *                       type: string
+ *                       example: "Updated Electronics"
+ *                     sequence_id:
+ *                       type: number
+ *                       example: 2
+ *                     image_link:
+ *                       type: string
+ *                       example: "https://example.com/updated.jpg"
+ *                     department_bg_color:
+ *                       type: string
+ *                       example: "#00FF00"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Department not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   delete:
+ *     tags:
+ *       - Departments
+ *     summary: Delete department (Admin only)
+ *     description: Delete a department from the catalog
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Department ID
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j6"
+ *     responses:
+ *       200:
+ *         description: Department deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Department deleted successfully"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Department not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // Get all departments
 router.get('/', async (req, res) => {
   try {

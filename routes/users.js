@@ -6,6 +6,401 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 const adminAuth = require('../middleware/adminAuth');
 
+/**
+ * @swagger
+ * /users/favorites:
+ *   get:
+ *     tags:
+ *       - User Management
+ *     summary: Get user's favorite products
+ *     description: Retrieve the authenticated user's favorite products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Number of products per page
+ *     responses:
+ *       200:
+ *         description: Favorite products retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     products:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Product'
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         current_page:
+ *                           type: integer
+ *                           example: 1
+ *                         total_pages:
+ *                           type: integer
+ *                           example: 3
+ *                         total_products:
+ *                           type: integer
+ *                           example: 50
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   post:
+ *     tags:
+ *       - User Management
+ *     summary: Add product to favorites
+ *     description: Add a product to the authenticated user's favorites
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - product_id
+ *             properties:
+ *               product_id:
+ *                 type: string
+ *                 example: "64f1a2b3c4d5e6f7g8h9i0j2"
+ *     responses:
+ *       200:
+ *         description: Product added to favorites successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Product added to favorites"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     favorite_products:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["64f1a2b3c4d5e6f7g8h9i0j2"]
+ *       400:
+ *         description: Product not found or already in favorites
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /users/favorites/{productId}:
+ *   delete:
+ *     tags:
+ *       - User Management
+ *     summary: Remove product from favorites
+ *     description: Remove a product from the authenticated user's favorites
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID to remove from favorites
+ *         example: "64f1a2b3c4d5e6f7g8h9i0j2"
+ *     responses:
+ *       200:
+ *         description: Product removed from favorites successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Product removed from favorites"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     favorite_products:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["64f1a2b3c4d5e6f7g8h9i0j3"]
+ *       400:
+ *         description: Product not in favorites
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /users/addresses:
+ *   post:
+ *     tags:
+ *       - User Management
+ *     summary: Add address
+ *     description: Add a new address to the authenticated user's profile
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type
+ *               - name
+ *               - phone
+ *               - address_line_1
+ *               - city
+ *               - state
+ *               - pincode
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [home, work, other]
+ *                 example: "home"
+ *               name:
+ *                 type: string
+ *                 example: "John Doe"
+ *               phone:
+ *                 type: string
+ *                 example: "1234567890"
+ *               address_line_1:
+ *                 type: string
+ *                 example: "123 Main Street"
+ *               address_line_2:
+ *                 type: string
+ *                 example: "Apt 4B"
+ *               city:
+ *                 type: string
+ *                 example: "Mumbai"
+ *               state:
+ *                 type: string
+ *                 example: "Maharashtra"
+ *               pincode:
+ *                 type: string
+ *                 example: "400001"
+ *               landmark:
+ *                 type: string
+ *                 example: "Near Railway Station"
+ *               is_default:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       201:
+ *         description: Address added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Address added successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     addresses:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Address'
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ * /users/addresses/{addressId}:
+ *   put:
+ *     tags:
+ *       - User Management
+ *     summary: Update address
+ *     description: Update an existing address in the authenticated user's profile
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: addressId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Address ID to update
+ *         example: "address_id_1"
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Address'
+ *     responses:
+ *       200:
+ *         description: Address updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Address updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     addresses:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Address'
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Address not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   delete:
+ *     tags:
+ *       - User Management
+ *     summary: Delete address
+ *     description: Delete an address from the authenticated user's profile
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: addressId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Address ID to delete
+ *         example: "address_id_1"
+ *     responses:
+ *       200:
+ *         description: Address deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Address deleted successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     addresses:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Address'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Address not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // Middleware to verify JWT token
 const authenticateToken = async (req, res, next) => {
   try {
