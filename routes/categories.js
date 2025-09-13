@@ -388,6 +388,15 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Test route
+router.get('/test-route', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Test route working!',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // ==================== ADMIN CRUD ROUTES ====================
 
 // Create new category (Admin only)
