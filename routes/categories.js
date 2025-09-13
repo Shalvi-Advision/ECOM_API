@@ -336,41 +336,24 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const id = req.params.id;
-    let category;
-    
-    // Handle both ObjectId and string idcategory_master
-    if (mongoose.Types.ObjectId.isValid(id)) {
-      // Try to find by ObjectId first
-      category = await Category.findById(id).populate('dept_id', 'department_name');
-      
-      // If not found by ObjectId, try by idcategory_master
-      if (!category) {
-        category = await Category.findOne({ idcategory_master: id }).populate('dept_id', 'department_name');
-      }
-    } else {
-      // If not a valid ObjectId, search by idcategory_master
-      category = await Category.findOne({ idcategory_master: id }).populate('dept_id', 'department_name');
-    }
-    
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: 'Category not found'
-      });
-    }
 
+    // Simple test - just return the ID for now
     res.json({
       success: true,
-      data: category
+      message: `Route working! Received ID: ${id}`,
+      route: 'GET /:id',
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching category',
+      message: 'Error',
       error: error.message
     });
   }
-});// Get categories by department
+});
+
+// Get categories by department
 router.get('/department/:deptId', async (req, res) => {
   try {
     const { store_code } = req.query;
