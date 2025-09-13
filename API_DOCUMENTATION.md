@@ -5,6 +5,18 @@
 http://localhost:5000/api
 ```
 
+## Swagger Documentation
+Interactive API documentation is available at:
+```
+http://localhost:5000/api-docs
+```
+
+## Postman Collection
+A comprehensive Postman collection is available in the repository:
+- File: `Postman_Collection.json`
+- Import this file into Postman to test all API endpoints
+- The collection includes environment variables for easy configuration
+
 ## Authentication
 Most endpoints require authentication via JWT token in the Authorization header:
 ```

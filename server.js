@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+const { swaggerUi, swaggerSpec } = require('./swagger');
 require('dotenv').config();
 
 const app = express();
@@ -60,6 +61,9 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/migration', require('./routes/migration'));
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

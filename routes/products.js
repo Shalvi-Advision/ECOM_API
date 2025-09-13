@@ -8,6 +8,221 @@ const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
 const mongoose = require('mongoose');
 
+/**
+ * @swagger
+ * /products:
+ *   get:
+ *     tags:
+ *       - Products
+ *     summary: Get all products
+ *     description: Retrieve a paginated list of products with optional filters
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Number of items per page
+ *       - in: query
+ *         name: category_id
+ *         schema:
+ *           type: string
+ *         description: Filter by category ID
+ *       - in: query
+ *         name: sub_category_id
+ *         schema:
+ *           type: string
+ *         description: Filter by subcategory ID
+ *       - in: query
+ *         name: dept_id
+ *         schema:
+ *           type: string
+ *         description: Filter by department ID
+ *       - in: query
+ *         name: store_code
+ *         schema:
+ *           type: string
+ *         description: Filter by store code
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search term for product name, description, or brand
+ *       - in: query
+ *         name: min_price
+ *         schema:
+ *           type: number
+ *         description: Minimum price filter
+ *       - in: query
+ *         name: max_price
+ *         schema:
+ *           type: number
+ *         description: Maximum price filter
+ *       - in: query
+ *         name: sort_by
+ *         schema:
+ *           type: string
+ *           default: createdAt
+ *         description: Sort field
+ *       - in: query
+ *         name: sort_order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort direction
+ *     responses:
+ *       200:
+ *         description: Products retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     products:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Product'
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         current_page:
+ *                           type: integer
+ *                           example: 1
+ *                         total_pages:
+ *                           type: integer
+ *                           example: 10
+ *                         total_products:
+ *                           type: integer
+ *                           example: 200
+ *                         has_next:
+ *                           type: boolean
+ *                           example: true
+ *                         has_prev:
+ *                           type: boolean
+ *                           example: false
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   post:
+ *     tags:
+ *       - Products
+ *     summary: Create a new product (Admin only)
+ *     description: Create a new product in the catalog
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - product_name
+ *               - our_price
+ *               - dept_id
+ *               - category_id
+ *               - sub_category_id
+ *             properties:
+ *               product_name:
+ *                 type: string
+ *                 example: "New Product"
+ *               product_description:
+ *                 type: string
+ *                 example: "Product description"
+ *               our_price:
+ *                 type: number
+ *                 example: 25.00
+ *               dept_id:
+ *                 type: string
+ *                 example: "2"
+ *               category_id:
+ *                 type: string
+ *                 example: "89"
+ *               sub_category_id:
+ *                 type: string
+ *                 example: "349"
+ *               store_code:
+ *                 type: string
+ *                 example: "AME"
+ *               package_size:
+ *                 type: number
+ *                 example: 500
+ *               package_unit:
+ *                 type: string
+ *                 example: "GM"
+ *               brand_name:
+ *                 type: string
+ *                 example: "Brand Name"
+ *               store_quantity:
+ *                 type: number
+ *                 example: 100
+ *               max_quantity_allowed:
+ *                 type: number
+ *                 example: 5
+ *               pcode_img:
+ *                 type: string
+ *                 example: "https://example.com/image.jpg"
+ *               discount_percentage:
+ *                 type: number
+ *                 example: 10
+ *               featured:
+ *                 type: boolean
+ *                 example: false
+ *     responses:
+ *       201:
+ *         description: Product created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Product created successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // Helper function to check if a string is a valid ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -77,6 +292,150 @@ const populateProductsReferences = async (product) => {
     return product; // Return original product if population fails
   }
 };
+
+/**
+ * @swagger
+ * /products/{id}:
+ *   get:
+ *     tags:
+ *       - Products
+ *     summary: Get product by ID
+ *     description: Retrieve a single product by its product code
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product code (p_code)
+ *         example: "2390"
+ *     responses:
+ *       200:
+ *         description: Product retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Product'
+ *       404:
+ *         description: Product not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   put:
+ *     tags:
+ *       - Products
+ *     summary: Update product (Admin only)
+ *     description: Update an existing product
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product code (p_code)
+ *         example: "2390"
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Product'
+ *     responses:
+ *       200:
+ *         description: Product updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Product updated successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Product'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Product not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   delete:
+ *     tags:
+ *       - Products
+ *     summary: Delete product (Admin only)
+ *     description: Delete a product from the catalog
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product code (p_code)
+ *         example: "2390"
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Product deleted successfully"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Product not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 
 // Get all products with pagination and filters
 router.get('/', async (req, res) => {

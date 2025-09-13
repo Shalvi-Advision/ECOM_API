@@ -5,6 +5,77 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     tags:
+ *       - Authentication
+ *     summary: Register a new user
+ *     description: Create a new user account with email, phone, and password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - phone
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 example: "John Doe"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "john@example.com"
+ *               phone:
+ *                 type: string
+ *                 example: "1234567890"
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *                 example: "password123"
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "User registered successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *                     token:
+ *                       type: string
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       400:
+ *         description: Validation errors or user already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // Register user
 router.post('/register', [
   body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
@@ -75,6 +146,67 @@ router.post('/register', [
     });
   }
 });
+
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     tags:
+ *       - Authentication
+ *     summary: Login user
+ *     description: Authenticate user with email and password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "john@example.com"
+ *               password:
+ *                 type: string
+ *                 example: "password123"
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Login successful"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *                     token:
+ *                       type: string
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       401:
+ *         description: Invalid credentials or account deactivated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 
 // Login user
 router.post('/login', [
@@ -152,6 +284,123 @@ router.post('/login', [
     });
   }
 });
+
+/**
+ * @swagger
+ * /auth/profile:
+ *   get:
+ *     tags:
+ *       - Authentication
+ *     summary: Get user profile
+ *     description: Retrieve the current user's profile information
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       allOf:
+ *                         - $ref: '#/components/schemas/User'
+ *                         - type: object
+ *                           properties:
+ *                             addresses:
+ *                               type: array
+ *                               items:
+ *                                 $ref: '#/components/schemas/Address'
+ *                             favorite_products:
+ *                               type: array
+ *                               items:
+ *                                 type: string
+ *       401:
+ *         description: Access token required or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   put:
+ *     tags:
+ *       - Authentication
+ *     summary: Update user profile
+ *     description: Update the current user's profile information
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Updated Name"
+ *               phone:
+ *                 type: string
+ *                 example: "9876543210"
+ *               addresses:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Address'
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Profile updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Access token required or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 
 // Get current user profile
 router.get('/profile', async (req, res) => {

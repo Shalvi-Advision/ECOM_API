@@ -21,7 +21,8 @@ A comprehensive REST API backend for the Patel Mart e-commerce platform built wi
 - **Authentication**: JWT (JSON Web Tokens)
 - **Validation**: Express Validator
 - **Security**: Helmet, CORS, Rate Limiting
-- **Documentation**: Built-in API documentation
+- **Documentation**: Swagger/OpenAPI 3.0, Postman Collection
+- **API Testing**: Interactive Swagger UI
 
 ## Installation
 
@@ -56,6 +57,33 @@ npm run dev
 # Production
 npm start
 ```
+
+## API Documentation
+
+### Swagger UI
+Interactive API documentation is available at:
+```
+http://localhost:5000/api-docs
+```
+
+### Postman Collection
+Import the `Postman_Collection.json` file into Postman to test all API endpoints:
+1. Open Postman
+2. Click "Import"
+3. Select "File"
+4. Choose `Postman_Collection.json`
+5. Set environment variables:
+   - `base_url`: `http://localhost:5000/api`
+   - `jwt_token`: (will be set automatically after login)
+   - `user_id`: (will be set automatically after login)
+
+### Static Documentation
+Complete API documentation is available in `API_DOCUMENTATION.md` with:
+- Detailed endpoint descriptions
+- Request/response examples
+- Authentication requirements
+- Error handling
+- Data models
 
 ## API Endpoints
 
