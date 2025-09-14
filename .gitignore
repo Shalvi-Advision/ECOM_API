@@ -95,3 +95,6 @@ uploads/
 # Build directory
 build/
 dist/
+
+# Backup files (can be very large)
+backups/
