@@ -98,3 +98,8 @@ dist/
 
 # Backup files (can be very large)
 backups/
+# Additional .gitignore entries for large files
+*.sql
+*.db
+*.sqlite
+*.sqlite3
