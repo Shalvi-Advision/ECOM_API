@@ -10,8 +10,9 @@ const categorySchema = new mongoose.Schema({
     required: true
   },
   dept_id: {
-    type: String,
-    required: true
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'Department'
   },
   sequence_id: {
     type: Number,
@@ -41,5 +42,8 @@ const categorySchema = new mongoose.Schema({
 categorySchema.index({ dept_id: 1, store_code: 1 });
 categorySchema.index({ category_name: 1 });
 categorySchema.index({ idcategory_master: 1 });
+
+// Add compound index for hierarchical queries
+categorySchema.index({ dept_id: 1, sequence_id: 1 });
 
 module.exports = mongoose.model('Category', categorySchema);

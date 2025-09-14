@@ -226,73 +226,6 @@ const mongoose = require('mongoose');
 // Helper function to check if a string is a valid ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// Helper function to populate product references manually
-const populateProductsReferences = async (product) => {
-  try {
-    // Populate department
-    if (product.dept_id) {
-      let department;
-      if (isValidObjectId(product.dept_id)) {
-        department = await Department.findById(product.dept_id).lean();
-      } else {
-        department = await Department.findOne({ department_id: product.dept_id }).lean();
-      }
-      
-      if (department) {
-        product.dept_id = {
-          _id: department._id,
-          department_name: department.department_name
-        };
-      } else {
-        product.dept_id = null;
-      }
-    }
-
-    // Populate category
-    if (product.category_id) {
-      let category;
-      if (isValidObjectId(product.category_id)) {
-        category = await Category.findById(product.category_id).lean();
-      } else {
-        category = await Category.findOne({ idcategory_master: product.category_id }).lean();
-      }
-      
-      if (category) {
-        product.category_id = {
-          _id: category._id,
-          category_name: category.category_name
-        };
-      } else {
-        product.category_id = null;
-      }
-    }
-
-    // Populate subcategory
-    if (product.sub_category_id) {
-      let subCategory;
-      if (isValidObjectId(product.sub_category_id)) {
-        subCategory = await SubCategory.findById(product.sub_category_id).lean();
-      } else {
-        subCategory = await SubCategory.findOne({ idsub_category_master: product.sub_category_id }).lean();
-      }
-      
-      if (subCategory) {
-        product.sub_category_id = {
-          _id: subCategory._id,
-          sub_category_name: subCategory.sub_category_name
-        };
-      } else {
-        product.sub_category_id = null;
-      }
-    }
-
-    return product;
-  } catch (error) {
-    console.error('Error populating product references:', error);
-    return product; // Return original product if population fails
-  }
-};
-
 /**
  * @swagger
  * /products/{id}:
@@ -456,10 +389,46 @@ router.get('/', async (req, res) => {
 
     // Build filter object
     const filter = {};
-    
-    if (category_id) filter.category_id = category_id;
-    if (sub_category_id) filter.sub_category_id = sub_category_id;
-    if (dept_id) filter.dept_id = dept_id;
+
+    // Handle category_id filtering - can be ObjectId or idcategory_master string
+    if (category_id) {
+      if (mongoose.Types.ObjectId.isValid(category_id)) {
+        filter.category_id = category_id;
+      } else {
+        // If it's not a valid ObjectId, try to find category by idcategory_master string
+        const category = await Category.findOne({ idcategory_master: category_id });
+        if (category) {
+          filter.category_id = category._id;
+        }
+      }
+    }
+
+    // Handle sub_category_id filtering - can be ObjectId or idsub_category_master string
+    if (sub_category_id) {
+      if (mongoose.Types.ObjectId.isValid(sub_category_id)) {
+        filter.sub_category_id = sub_category_id;
+      } else {
+        // If it's not a valid ObjectId, try to find subcategory by idsub_category_master string
+        const subCategory = await SubCategory.findOne({ idsub_category_master: sub_category_id });
+        if (subCategory) {
+          filter.sub_category_id = subCategory._id;
+        }
+      }
+    }
+
+    // Handle dept_id filtering - can be ObjectId or department_id string
+    if (dept_id) {
+      if (mongoose.Types.ObjectId.isValid(dept_id)) {
+        filter.dept_id = dept_id;
+      } else {
+        // If it's not a valid ObjectId, try to find department by department_id string
+        const department = await Department.findOne({ department_id: dept_id });
+        if (department) {
+          filter.dept_id = department._id;
+        }
+      }
+    }
+
     if (store_code) filter.store_code = store_code;
     if (min_price || max_price) {
       filter.our_price = {};
@@ -482,15 +451,15 @@ router.get('/', async (req, res) => {
     sort[sort_by] = sort_order === 'desc' ? -1 : 1;
 
     const products = await Product.find(filter)
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
+      .populate('category_id', 'category_name image_link sequence_id idcategory_master')
+      .populate('sub_category_id', 'sub_category_name idsub_category_master')
       .sort(sort)
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .lean();
 
-    // Populate references manually
-    const populatedProducts = await Promise.all(
-      products.map(product => populateProductsReferences(product))
-    );
+    const populatedProducts = products;
 
     const total = await Product.countDocuments(filter);
 
@@ -519,8 +488,12 @@ router.get('/', async (req, res) => {
 // Get product by ID
 router.get('/:id', async (req, res) => {
   try {
-    const product = await Product.findOne({ pcode: req.params.id }).lean();
-    
+    const product = await Product.findOne({ p_code: req.params.id })
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
+      .populate('category_id', 'category_name image_link sequence_id idcategory_master')
+      .populate('sub_category_id', 'sub_category_name idsub_category_master')
+      .lean();
+
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -528,12 +501,9 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    // Populate references manually
-    const populatedProduct = await populateProductsReferences(product);
-
     res.json({
       success: true,
-      data: populatedProduct
+      data: product
     });
   } catch (error) {
     res.status(500).json({
@@ -545,34 +515,48 @@ router.get('/:id', async (req, res) => {
 });
 
 // Get products by category
-router.get('/category/:category_id', async (req, res) => {
+router.get('/category/:categoryId', async (req, res) => {
   try {
-    const { category_id } = req.params;
+    const categoryId = req.params.categoryId;
     const { page = 1, limit = 20 } = req.query;
 
-    const products = await Product.find({ 
-      category_id: category_id,
+    let categoryObjectId = categoryId;
+
+    // Handle category ID - can be ObjectId or idcategory_master string
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      // If it's not a valid ObjectId, try to find category by idcategory_master string
+      const category = await Category.findOne({ idcategory_master: categoryId });
+      if (category) {
+        categoryObjectId = category._id;
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: 'Category not found'
+        });
+      }
+    }
+
+    const products = await Product.find({
+      category_id: categoryObjectId,
       pcode_status: 'Y'
     })
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
+      .populate('category_id', 'category_name image_link sequence_id idcategory_master')
+      .populate('sub_category_id', 'sub_category_name idsub_category_master')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .lean();
 
-    // Populate references manually
-    const populatedProducts = await Promise.all(
-      products.map(product => populateProductsReferences(product))
-    );
-
-    const total = await Product.countDocuments({ 
-      category_id: category_id,
+    const total = await Product.countDocuments({
+      category_id: categoryObjectId,
       pcode_status: 'Y'
     });
 
     res.json({
       success: true,
       data: {
-        products: populatedProducts,
+        products: products,
         pagination: {
           current_page: parseInt(page),
           total_pages: Math.ceil(total / limit),
@@ -592,34 +576,48 @@ router.get('/category/:category_id', async (req, res) => {
 });
 
 // Get products by subcategory
-router.get('/subcategory/:sub_category_id', async (req, res) => {
+router.get('/subcategory/:subCategoryId', async (req, res) => {
   try {
-    const { sub_category_id } = req.params;
+    const subCategoryId = req.params.subCategoryId;
     const { page = 1, limit = 20 } = req.query;
 
-    const products = await Product.find({ 
-      sub_category_id: sub_category_id,
+    let subCategoryObjectId = subCategoryId;
+
+    // Handle subcategory ID - can be ObjectId or idsub_category_master string
+    if (!mongoose.Types.ObjectId.isValid(subCategoryId)) {
+      // If it's not a valid ObjectId, try to find subcategory by idsub_category_master string
+      const subCategory = await SubCategory.findOne({ idsub_category_master: subCategoryId });
+      if (subCategory) {
+        subCategoryObjectId = subCategory._id;
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: 'Subcategory not found'
+        });
+      }
+    }
+
+    const products = await Product.find({
+      sub_category_id: subCategoryObjectId,
       pcode_status: 'Y'
     })
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
+      .populate('category_id', 'category_name image_link sequence_id idcategory_master')
+      .populate('sub_category_id', 'sub_category_name idsub_category_master')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .lean();
 
-    // Populate references manually
-    const populatedProducts = await Promise.all(
-      products.map(product => populateProductsReferences(product))
-    );
-
-    const total = await Product.countDocuments({ 
-      sub_category_id: sub_category_id,
+    const total = await Product.countDocuments({
+      sub_category_id: subCategoryObjectId,
       pcode_status: 'Y'
     });
 
     res.json({
       success: true,
       data: {
-        products: populatedProducts,
+        products: products,
         pagination: {
           current_page: parseInt(page),
           total_pages: Math.ceil(total / limit),
@@ -639,34 +637,48 @@ router.get('/subcategory/:sub_category_id', async (req, res) => {
 });
 
 // Get products by department
-router.get('/department/:dept_id', async (req, res) => {
+router.get('/department/:deptId', async (req, res) => {
   try {
-    const { dept_id } = req.params;
+    const deptId = req.params.deptId;
     const { page = 1, limit = 20 } = req.query;
 
-    const products = await Product.find({ 
-      dept_id: dept_id,
+    let deptObjectId = deptId;
+
+    // Handle department ID - can be ObjectId or department_id string
+    if (!mongoose.Types.ObjectId.isValid(deptId)) {
+      // If it's not a valid ObjectId, try to find department by department_id string
+      const department = await Department.findOne({ department_id: deptId });
+      if (department) {
+        deptObjectId = department._id;
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: 'Department not found'
+        });
+      }
+    }
+
+    const products = await Product.find({
+      dept_id: deptObjectId,
       pcode_status: 'Y'
     })
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
+      .populate('category_id', 'category_name image_link sequence_id idcategory_master')
+      .populate('sub_category_id', 'sub_category_name idsub_category_master')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .lean();
 
-    // Populate references manually
-    const populatedProducts = await Promise.all(
-      products.map(product => populateProductsReferences(product))
-    );
-
-    const total = await Product.countDocuments({ 
-      dept_id: dept_id,
+    const total = await Product.countDocuments({
+      dept_id: deptObjectId,
       pcode_status: 'Y'
     });
 
     res.json({
       success: true,
       data: {
-        products: populatedProducts,
+        products: products,
         pagination: {
           current_page: parseInt(page),
           total_pages: Math.ceil(total / limit),
@@ -703,15 +715,15 @@ router.get('/search/:query', async (req, res) => {
         }
       ]
     })
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
+      .populate('category_id', 'category_name image_link sequence_id idcategory_master')
+      .populate('sub_category_id', 'sub_category_name idsub_category_master')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .lean();
 
-    // Populate references manually
-    const populatedProducts = await Promise.all(
-      products.map(product => populateProductsReferences(product))
-    );
+    const populatedProducts = products;
 
     const total = await Product.countDocuments({
       $and: [
@@ -753,22 +765,20 @@ router.get('/featured/list', async (req, res) => {
   try {
     const { limit = 10 } = req.query;
 
-    const products = await Product.find({ 
+    const products = await Product.find({
       pcode_status: 'Y',
-      featured: true
+      is_featured: true
     })
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
+      .populate('category_id', 'category_name image_link sequence_id idcategory_master')
+      .populate('sub_category_id', 'sub_category_name idsub_category_master')
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .lean();
 
-    // Populate references manually
-    const populatedProducts = await Promise.all(
-      products.map(product => populateProductsReferences(product))
-    );
-
     res.json({
       success: true,
-      data: populatedProducts
+      data: products
     });
   } catch (error) {
     res.status(500).json({
@@ -785,21 +795,19 @@ router.get('/store/:store_code', async (req, res) => {
     const { store_code } = req.params;
     const { page = 1, limit = 20 } = req.query;
 
-    const products = await Product.find({ 
+    const products = await Product.find({
       store_code: store_code,
       pcode_status: 'Y'
     })
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
+      .populate('category_id', 'category_name image_link sequence_id idcategory_master')
+      .populate('sub_category_id', 'sub_category_name idsub_category_master')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .lean();
 
-    // Populate references manually
-    const populatedProducts = await Promise.all(
-      products.map(product => populateProductsReferences(product))
-    );
-
-    const total = await Product.countDocuments({ 
+    const total = await Product.countDocuments({
       store_code: store_code,
       pcode_status: 'Y'
     });
@@ -807,7 +815,7 @@ router.get('/store/:store_code', async (req, res) => {
     res.json({
       success: true,
       data: {
-        products: populatedProducts,
+        products: products,
         pagination: {
           current_page: parseInt(page),
           total_pages: Math.ceil(total / limit),
@@ -848,13 +856,17 @@ router.post('/', adminAuth, [
     const product = new Product(req.body);
     await product.save();
 
-    // Populate references manually
-    const populatedProduct = await populateProductsReferences(product.toObject());
+    // Populate references using mongoose
+    await product.populate([
+      { path: 'dept_id', select: 'department_name image_link sequence_id department_id' },
+      { path: 'category_id', select: 'category_name image_link sequence_id idcategory_master' },
+      { path: 'sub_category_id', select: 'sub_category_name idsub_category_master' }
+    ]);
 
     res.status(201).json({
       success: true,
       message: 'Product created successfully',
-      data: populatedProduct
+      data: product
     });
   } catch (error) {
     res.status(500).json({
@@ -869,10 +881,10 @@ router.post('/', adminAuth, [
 router.put('/:id', adminAuth, async (req, res) => {
   try {
     const product = await Product.findOneAndUpdate(
-      { pcode: req.params.id },
+      { p_code: req.params.id },
       req.body,
       { new: true, runValidators: true }
-    ).lean();
+    );
 
     if (!product) {
       return res.status(404).json({
@@ -881,13 +893,17 @@ router.put('/:id', adminAuth, async (req, res) => {
       });
     }
 
-    // Populate references manually
-    const populatedProduct = await populateProductsReferences(product);
+    // Populate references using mongoose
+    await product.populate([
+      { path: 'dept_id', select: 'department_name image_link sequence_id department_id' },
+      { path: 'category_id', select: 'category_name image_link sequence_id idcategory_master' },
+      { path: 'sub_category_id', select: 'sub_category_name idsub_category_master' }
+    ]);
 
     res.json({
       success: true,
       message: 'Product updated successfully',
-      data: populatedProduct
+      data: product
     });
   } catch (error) {
     res.status(500).json({

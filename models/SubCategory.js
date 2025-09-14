@@ -27,4 +27,7 @@ const subCategorySchema = new mongoose.Schema({
 subCategorySchema.index({ category_id: 1 });
 subCategorySchema.index({ sub_category_name: 1 });
 
+// Add compound index for hierarchical queries
+subCategorySchema.index({ category_id: 1, sub_category_name: 1 });
+
 module.exports = mongoose.model('SubCategory', subCategorySchema);

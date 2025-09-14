@@ -5,7 +5,7 @@ const Category = require('../models/Category');
 const Department = require('../models/Department');
 const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
-const { populateCategoryWithDepartment } = require('../utils/populateHelpers');
+// Removed populate helper as we're using mongoose populate now
 
 /**
  * @swagger
@@ -303,25 +303,29 @@ router.get('/', async (req, res) => {
 
     const filter = {};
 
-    // Handle dept_id filtering - now dept_id is a string that matches department_id
+    // Handle dept_id filtering - now dept_id is ObjectId
     if (dept_id) {
-      filter.dept_id = dept_id;
+      if (mongoose.Types.ObjectId.isValid(dept_id)) {
+        filter.dept_id = dept_id;
+      } else {
+        // If it's not a valid ObjectId, try to find department by department_id string
+        const department = await Department.findOne({ department_id: dept_id });
+        if (department) {
+          filter.dept_id = department._id;
+        }
+      }
     }
 
     if (store_code) filter.store_code = store_code;
 
     const categories = await Category.find(filter)
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
       .sort({ sequence_id: 1 })
       .lean();
 
-    // Populate department data manually
-    const populatedCategories = await Promise.all(
-      categories.map(category => populateCategoryWithDepartment(category))
-    );
-
     res.json({
       success: true,
-      data: populatedCategories
+      data: categories
     });
   } catch (error) {
     res.status(500).json({
@@ -340,23 +344,32 @@ router.get('/department/:deptId', async (req, res) => {
 
     const filter = {};
 
-    // Handle dept_id parameter - now dept_id is a string that matches department_id
-    filter.dept_id = deptId;
+    // Handle dept_id parameter - can be ObjectId or department_id string
+    if (mongoose.Types.ObjectId.isValid(deptId)) {
+      filter.dept_id = deptId;
+    } else {
+      // If it's not a valid ObjectId, try to find department by department_id string
+      const department = await Department.findOne({ department_id: deptId });
+      if (department) {
+        filter.dept_id = department._id;
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: 'Department not found'
+        });
+      }
+    }
 
     if (store_code) filter.store_code = store_code;
 
     const categories = await Category.find(filter)
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
       .sort({ sequence_id: 1 })
       .lean();
 
-    // Populate department data manually
-    const populatedCategories = await Promise.all(
-      categories.map(category => populateCategoryWithDepartment(category))
-    );
-
     res.json({
       success: true,
-      data: populatedCategories
+      data: categories
     });
   } catch (error) {
     res.status(500).json({
@@ -371,18 +384,34 @@ router.get('/department/:deptId', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const id = req.params.id;
+    let category;
 
-    // Simple test - just return the ID for now
+    // Handle both ObjectId and string idcategory_master
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // Try to find by ObjectId first
+      category = await Category.findById(id).populate('dept_id', 'department_name image_link sequence_id department_id');
+    }
+
+    // If not found by ObjectId or if it's not a valid ObjectId, search by idcategory_master
+    if (!category) {
+      category = await Category.findOne({ idcategory_master: id }).populate('dept_id', 'department_name image_link sequence_id department_id');
+    }
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found'
+      });
+    }
+
     res.json({
       success: true,
-      message: `Route working! Received ID: ${id}`,
-      route: 'GET /:id',
-      timestamp: new Date().toISOString()
+      data: category
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error',
+      message: 'Error fetching category',
       error: error.message
     });
   }
@@ -426,7 +455,7 @@ router.post('/', adminAuth, [
       is_active = 'Y'
     } = req.body;
 
-    // Check if department exists
+    // Check if department exists (dept_id is now ObjectId)
     const department = await Department.findById(dept_id);
     if (!department) {
       return res.status(400).json({
@@ -506,7 +535,7 @@ router.put('/:id', adminAuth, [
     // Check if sequence ID already exists (excluding current category)
     if (req.body.sequence_id && req.body.sequence_id !== category.sequence_id) {
       const existingCategory = await Category.findOne({
-        dept_id: category.dept_id,
+        dept_id: category.dept_id, // dept_id is now ObjectId
         store_code: category.store_code,
         sequence_id: req.body.sequence_id,
         _id: { $ne: req.params.id }
@@ -576,17 +605,30 @@ router.delete('/:id', adminAuth, async (req, res) => {
 // Get all categories for admin (including inactive)
 router.get('/admin/all', adminAuth, async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 20, 
-      dept_id, 
-      store_code, 
+    const {
+      page = 1,
+      limit = 20,
+      dept_id,
+      store_code,
       is_active,
-      search 
+      search
     } = req.query;
-    
+
     const filter = {};
-    if (dept_id) filter.dept_id = dept_id;
+
+    // Handle dept_id filtering - can be ObjectId or department_id string
+    if (dept_id) {
+      if (mongoose.Types.ObjectId.isValid(dept_id)) {
+        filter.dept_id = dept_id;
+      } else {
+        // If it's not a valid ObjectId, try to find department by department_id string
+        const department = await Department.findOne({ department_id: dept_id });
+        if (department) {
+          filter.dept_id = department._id;
+        }
+      }
+    }
+
     if (store_code) filter.store_code = store_code;
     if (is_active) filter.is_active = is_active;
     if (search) {
@@ -597,7 +639,7 @@ router.get('/admin/all', adminAuth, async (req, res) => {
     }
 
     const categories = await Category.find(filter)
-      .populate('dept_id', 'department_name')
+      .populate('dept_id', 'department_name image_link sequence_id department_id')
       .sort({ sequence_id: 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)

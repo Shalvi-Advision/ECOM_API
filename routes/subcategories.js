@@ -3,7 +3,7 @@ const router = express.Router();
 const SubCategory = require('../models/SubCategory');
 const { body, validationResult } = require('express-validator');
 const adminAuth = require('../middleware/adminAuth');
-const { populateSubCategoryWithCategory } = require('../utils/populateHelpers');
+// Removed populate helper as we're using mongoose populate now
 
 /**
  * @swagger
@@ -412,23 +412,56 @@ const { populateSubCategoryWithCategory } = require('../utils/populateHelpers');
 // Get all subcategories
 router.get('/', async (req, res) => {
   try {
-    const { category_id } = req.query;
-    
+    const { category_id, dept_id } = req.query;
+
     const filter = {};
-    if (category_id) filter.category_id = category_id;
+
+    // Handle category_id filtering - can be ObjectId or idcategory_master string
+    if (category_id) {
+      if (mongoose.Types.ObjectId.isValid(category_id)) {
+        filter.category_id = category_id;
+      } else {
+        // If it's not a valid ObjectId, try to find category by idcategory_master string
+        const category = await Category.findOne({ idcategory_master: category_id });
+        if (category) {
+          filter.category_id = category._id;
+        }
+      }
+    }
+
+    // Handle dept_id filtering for hierarchical queries
+    if (dept_id) {
+      if (mongoose.Types.ObjectId.isValid(dept_id)) {
+        // Find categories under this department, then find subcategories under those categories
+        const categories = await Category.find({ dept_id }).select('_id');
+        const categoryIds = categories.map(cat => cat._id);
+        filter.category_id = { $in: categoryIds };
+      } else {
+        // If it's not a valid ObjectId, try to find department by department_id string
+        const department = await Department.findOne({ department_id: dept_id });
+        if (department) {
+          const categories = await Category.find({ dept_id: department._id }).select('_id');
+          const categoryIds = categories.map(cat => cat._id);
+          filter.category_id = { $in: categoryIds };
+        }
+      }
+    }
 
     const subCategories = await SubCategory.find(filter)
+      .populate({
+        path: 'category_id',
+        populate: {
+          path: 'dept_id',
+          select: 'department_name image_link sequence_id department_id'
+        },
+        select: 'category_name image_link sequence_id idcategory_master'
+      })
       .sort({ sub_category_name: 1 })
       .lean();
 
-    // Populate category data manually
-    const populatedSubCategories = await Promise.all(
-      subCategories.map(subCategory => populateSubCategoryWithCategory(subCategory))
-    );
-
     res.json({
       success: true,
-      data: populatedSubCategories
+      data: subCategories
     });
   } catch (error) {
     res.status(500).json({
@@ -442,8 +475,19 @@ router.get('/', async (req, res) => {
 // Get subcategory by ID
 router.get('/:id', async (req, res) => {
   try {
-    const subCategory = await SubCategory.findById(req.params.id)
-      .populate('category_id', 'category_name');
+    const id = req.params.id;
+    let subCategory;
+
+    // Handle both ObjectId and string idsub_category_master
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // Try to find by ObjectId first
+      subCategory = await SubCategory.findById(id);
+    }
+
+    // If not found by ObjectId or if it's not a valid ObjectId, search by idsub_category_master
+    if (!subCategory) {
+      subCategory = await SubCategory.findOne({ idsub_category_master: id });
+    }
 
     if (!subCategory) {
       return res.status(404).json({
@@ -451,6 +495,16 @@ router.get('/:id', async (req, res) => {
         message: 'Subcategory not found'
       });
     }
+
+    // Populate full hierarchy
+    await subCategory.populate({
+      path: 'category_id',
+      populate: {
+        path: 'dept_id',
+        select: 'department_name image_link sequence_id department_id'
+      },
+      select: 'category_name image_link sequence_id idcategory_master'
+    });
 
     res.json({
       success: true,
@@ -468,8 +522,32 @@ router.get('/:id', async (req, res) => {
 // Get subcategories by category
 router.get('/category/:categoryId', async (req, res) => {
   try {
-    const subCategories = await SubCategory.find({ category_id: req.params.categoryId })
-      .populate('category_id', 'category_name')
+    const categoryId = req.params.categoryId;
+    let categoryObjectId = categoryId;
+
+    // Handle category ID - can be ObjectId or idcategory_master string
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      // If it's not a valid ObjectId, try to find category by idcategory_master string
+      const category = await Category.findOne({ idcategory_master: categoryId });
+      if (category) {
+        categoryObjectId = category._id;
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: 'Category not found'
+        });
+      }
+    }
+
+    const subCategories = await SubCategory.find({ category_id: categoryObjectId })
+      .populate({
+        path: 'category_id',
+        populate: {
+          path: 'dept_id',
+          select: 'department_name image_link sequence_id department_id'
+        },
+        select: 'category_name image_link sequence_id idcategory_master'
+      })
       .sort({ sub_category_name: 1 })
       .lean();
 
@@ -511,9 +589,17 @@ router.post('/', adminAuth, [
       is_active = 'Y'
     } = req.body;
 
-    // Check if category exists
+    // Check if category exists - handle both ObjectId and string IDs
     const Category = require('../models/Category');
-    const category = await Category.findById(category_id);
+    let category;
+
+    if (mongoose.Types.ObjectId.isValid(category_id)) {
+      category = await Category.findById(category_id);
+    } else {
+      // Try to find by idcategory_master string
+      category = await Category.findOne({ idcategory_master: category_id });
+    }
+
     if (!category) {
       return res.status(400).json({
         success: false,
@@ -521,13 +607,16 @@ router.post('/', adminAuth, [
       });
     }
 
+    // Use the ObjectId for storage
+    const categoryObjectId = category._id;
+
     // Generate a unique ID for the subcategory
     const idsub_category_master = `SUBCAT${Date.now()}${Math.floor(Math.random() * 1000)}`;
     
     const subCategory = new SubCategory({
       idsub_category_master,
       sub_category_name,
-      category_id,
+      category_id: categoryObjectId, // Use ObjectId
       main_category_name: category.category_name || 'Unknown Category'
     });
 
@@ -636,7 +725,20 @@ router.get('/admin/all', adminAuth, async (req, res) => {
     } = req.query;
     
     const filter = {};
-    if (category_id) filter.category_id = category_id;
+
+    // Handle category_id filtering - can be ObjectId or idcategory_master string
+    if (category_id) {
+      if (mongoose.Types.ObjectId.isValid(category_id)) {
+        filter.category_id = category_id;
+      } else {
+        // If it's not a valid ObjectId, try to find category by idcategory_master string
+        const category = await Category.findOne({ idcategory_master: category_id });
+        if (category) {
+          filter.category_id = category._id;
+        }
+      }
+    }
+
     if (is_active) filter.is_active = is_active;
     if (search) {
       filter.$or = [
@@ -645,41 +747,21 @@ router.get('/admin/all', adminAuth, async (req, res) => {
       ];
     }
 
-    // First get subcategories without population to avoid ObjectId casting errors
     const subCategories = await SubCategory.find(filter)
+      .populate({
+        path: 'category_id',
+        populate: {
+          path: 'dept_id',
+          select: 'department_name image_link sequence_id department_id'
+        },
+        select: 'category_name image_link sequence_id idcategory_master'
+      })
       .sort({ sub_category_name: 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .lean();
 
-    // Manually populate category data to handle invalid ObjectIds gracefully
-    const Category = require('../models/Category');
-    const populatedSubCategories = await Promise.all(
-      subCategories.map(async (subCategory) => {
-        try {
-          // Try to populate category_id if it's a valid ObjectId
-          if (subCategory.category_id && typeof subCategory.category_id === 'string' && subCategory.category_id.match(/^[0-9a-fA-F]{24}$/)) {
-            const category = await Category.findById(subCategory.category_id).select('category_name').lean();
-            return {
-              ...subCategory,
-              category_id: category || { _id: subCategory.category_id, category_name: 'Unknown Category' }
-            };
-          } else {
-            // Handle invalid ObjectId or string references
-            return {
-              ...subCategory,
-              category_id: { _id: subCategory.category_id, category_name: `Invalid Reference: ${subCategory.category_id}` }
-            };
-          }
-        } catch (error) {
-          // If population fails, return with error indication
-          return {
-            ...subCategory,
-            category_id: { _id: subCategory.category_id, category_name: 'Population Error' }
-          };
-        }
-      })
-    );
+    const populatedSubCategories = subCategories;
 
     const total = await SubCategory.countDocuments(filter);
 
