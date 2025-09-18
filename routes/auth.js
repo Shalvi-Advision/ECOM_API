@@ -1,5 +1,13 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
+
+// Generate JWT Token
+const generateToken = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE || '7d'
+  });
+};
 
 // Get OTP (SMS API)
 router.post('/get_otp', async (req, res) => {
@@ -52,7 +60,7 @@ router.post('/get_otp', async (req, res) => {
   }
 });
 
-// Validate OTP
+// Validate OTP and Generate JWT Token
 router.post('/validate_otp', async (req, res) => {
   try {
     const { mobileNo, otp, project_code } = req.body;
@@ -83,8 +91,15 @@ router.post('/validate_otp', async (req, res) => {
       });
     }
 
-    // Generate access key for authenticated user
-    const accessKey = `T${Date.now()}RnNU1ETTFORGcxT0g1K2ZuNDVNak15`;
+    // Generate JWT token for authenticated user
+    const tokenPayload = {
+      mobile_no: mobileNo,
+      project_code: project_code,
+      user_type: 'customer',
+      login_time: new Date().toISOString()
+    };
+
+    const token = generateToken(tokenPayload);
 
     res.json({
       success: true,
@@ -92,7 +107,9 @@ router.post('/validate_otp', async (req, res) => {
       data: {
         mobile_no: mobileNo,
         otp_valid: true,
-        access_key: accessKey,
+        token: token,
+        token_type: 'Bearer',
+        expires_in: process.env.JWT_EXPIRE || '7d',
         user_authenticated: true
       }
     });
@@ -102,6 +119,115 @@ router.post('/validate_otp', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to validate OTP'
+    });
+  }
+});
+
+// Verify JWT Token (for testing purposes)
+router.post('/verify_token', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token is required'
+      });
+    }
+
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    res.json({
+      success: true,
+      message: 'Token is valid',
+      data: {
+        decoded: decoded,
+        valid: true,
+        expires_at: new Date(decoded.exp * 1000).toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('Token verification error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid or expired token',
+      data: {
+        valid: false,
+        error: error.message
+      }
+    });
+  }
+});
+
+// Refresh Token
+router.post('/refresh_token', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token is required'
+      });
+    }
+
+    // Verify the current token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Generate new token with same payload
+    const newToken = generateToken({
+      mobile_no: decoded.mobile_no,
+      project_code: decoded.project_code,
+      user_type: decoded.user_type,
+      login_time: new Date().toISOString()
+    });
+
+    res.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      data: {
+        token: newToken,
+        token_type: 'Bearer',
+        expires_in: process.env.JWT_EXPIRE || '7d'
+      }
+    });
+
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid token, please login again',
+      data: {
+        error: error.message
+      }
+    });
+  }
+});
+
+// Logout (for client-side token removal)
+router.post('/logout', async (req, res) => {
+  try {
+    // In a real implementation, you might want to:
+    // 1. Add the token to a blacklist
+    // 2. Clear any server-side sessions
+    // 3. Log the logout event
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+      data: {
+        logged_out: true,
+        message: 'Token invalidated on client side'
+      }
+    });
+
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to logout'
     });
   }
 });

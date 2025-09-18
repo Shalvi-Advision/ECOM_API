@@ -1,16 +1,19 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { protect } = require('../middleware/auth');
 const router = express.Router();
 
 // Add/Remove to Favorites
-router.post('/add_remove_to_favorites', async (req, res) => {
+router.post('/add_remove_to_favorites', protect, async (req, res) => {
   try {
-    const { access_key, p_code, mobile_no, store_code, project_code } = req.body;
+    const { p_code, store_code } = req.body;
+    const mobile_no = req.user.mobile_no;
+    const project_code = req.user.project_code;
 
-    if (!access_key || !p_code || !mobile_no || !store_code || !project_code) {
+    if (!p_code || !store_code) {
       return res.status(400).json({
         success: false,
-        message: 'access_key, p_code, mobile_no, store_code, and project_code are required'
+        message: 'p_code and store_code are required'
       });
     }
 
@@ -73,14 +76,16 @@ router.post('/add_remove_to_favorites', async (req, res) => {
 });
 
 // Get Favorite Items
-router.post('/get_favorite_items', async (req, res) => {
+router.post('/get_favorite_items', protect, async (req, res) => {
   try {
-    const { access_key, mobile_no, store_code, project_code } = req.body;
+    const { store_code } = req.body;
+    const mobile_no = req.user.mobile_no;
+    const project_code = req.user.project_code;
 
-    if (!access_key || !mobile_no || !store_code || !project_code) {
+    if (!store_code) {
       return res.status(400).json({
         success: false,
-        message: 'access_key, mobile_no, store_code, and project_code are required'
+        message: 'store_code is required'
       });
     }
 
@@ -125,15 +130,12 @@ router.post('/get_favorite_items', async (req, res) => {
 });
 
 // Add Address
-router.post('/add_address', async (req, res) => {
+router.post('/add_address', protect, async (req, res) => {
   try {
     const {
       idaddress_book,
       store_code,
-      project_code,
       full_name,
-      access_key,
-      mobile_number,
       email_id,
       delivery_addr_line_1,
       delivery_addr_line_2,
@@ -145,10 +147,13 @@ router.post('/add_address', async (req, res) => {
       area_id
     } = req.body;
 
-    if (!store_code || !project_code || !full_name || !mobile_number) {
+    const mobile_number = req.user.mobile_no;
+    const project_code = req.user.project_code;
+
+    if (!store_code || !full_name) {
       return res.status(400).json({
         success: false,
-        message: 'store_code, project_code, full_name, and mobile_number are required'
+        message: 'store_code and full_name are required'
       });
     }
 
@@ -195,21 +200,23 @@ router.post('/add_address', async (req, res) => {
 });
 
 // Get Address List
-router.post('/get_address_list', async (req, res) => {
+router.post('/get_address_list', protect, async (req, res) => {
   try {
-    const { access_key, store_code, project_code } = req.body;
+    const { store_code } = req.body;
+    const mobile_no = req.user.mobile_no;
+    const project_code = req.user.project_code;
 
-    if (!access_key || !store_code || !project_code) {
+    if (!store_code) {
       return res.status(400).json({
         success: false,
-        message: 'access_key, store_code, and project_code are required'
+        message: 'store_code is required'
       });
     }
 
     const addressbooksCollection = mongoose.connection.db.collection('addressbooks');
 
     const addresses = await addressbooksCollection.find({
-      access_key: access_key,
+      mobile_number: mobile_no,
       store_code: store_code
     }).toArray();
 
@@ -281,22 +288,22 @@ router.put('/update_address/:address_id', async (req, res) => {
 });
 
 // Add/Update Customer Profile
-router.post('/add_update_customer_profile', async (req, res) => {
+router.post('/add_update_customer_profile', protect, async (req, res) => {
   try {
     const {
-      access_key,
       first_name,
       last_name,
-      mobile_number,
       email_id,
-      store_code,
-      project_code
+      store_code
     } = req.body;
 
-    if (!access_key || !mobile_number || !store_code || !project_code) {
+    const mobile_number = req.user.mobile_no;
+    const project_code = req.user.project_code;
+
+    if (!store_code) {
       return res.status(400).json({
         success: false,
-        message: 'access_key, mobile_number, store_code, and project_code are required'
+        message: 'store_code is required'
       });
     }
 
@@ -304,12 +311,10 @@ router.post('/add_update_customer_profile', async (req, res) => {
 
     // Check if customer profile exists
     const existingProfile = await addressbooksCollection.findOne({
-      access_key: access_key,
       mobile_number: mobile_number
     });
 
     const profileData = {
-      access_key,
       first_name,
       last_name,
       mobile_number,
@@ -356,21 +361,22 @@ router.post('/add_update_customer_profile', async (req, res) => {
 });
 
 // Get Customer Profile
-router.post('/get_customer_profile', async (req, res) => {
+router.post('/get_customer_profile', protect, async (req, res) => {
   try {
-    const { access_key, mobile_number, store_code, project_code } = req.body;
+    const { store_code } = req.body;
+    const mobile_number = req.user.mobile_no;
+    const project_code = req.user.project_code;
 
-    if (!access_key || !mobile_number || !store_code || !project_code) {
+    if (!store_code) {
       return res.status(400).json({
         success: false,
-        message: 'access_key, mobile_number, store_code, and project_code are required'
+        message: 'store_code is required'
       });
     }
 
     const addressbooksCollection = mongoose.connection.db.collection('addressbooks');
 
     const profile = await addressbooksCollection.findOne({
-      access_key: access_key,
       mobile_number: mobile_number,
       store_code: store_code
     });

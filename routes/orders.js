@@ -1,23 +1,24 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { protect } = require('../middleware/auth');
 const router = express.Router();
 
 // Save/Update Cart
-router.post('/save_cart', async (req, res) => {
+router.post('/save_cart', protect, async (req, res) => {
   try {
     const {
       store_code,
-      project_code,
       temp_order_id,
       device_id,
-      cart_items,
-      access_key
+      cart_items
     } = req.body;
 
-    if (!store_code || !project_code || !cart_items || !Array.isArray(cart_items)) {
+    const project_code = req.user.project_code;
+
+    if (!store_code || !cart_items || !Array.isArray(cart_items)) {
       return res.status(400).json({
         success: false,
-        message: 'store_code, project_code, and cart_items are required'
+        message: 'store_code and cart_items are required'
       });
     }
 
@@ -49,7 +50,7 @@ router.post('/save_cart', async (req, res) => {
       store_code,
       project_code,
       device_id,
-      access_key,
+      user_mobile: req.user.mobile_no,
       cart_items: processedCartItems,
       total_mrp: totalMrp,
       total_selling_price: totalSellingPrice,
@@ -78,14 +79,16 @@ router.post('/save_cart', async (req, res) => {
 });
 
 // Get Orders History
-router.post('/get_orders_history', async (req, res) => {
+router.post('/get_orders_history', protect, async (req, res) => {
   try {
-    const { access_key, store_code, project_code } = req.body;
+    const { store_code } = req.body;
+    const project_code = req.user.project_code;
+    const user_mobile = req.user.mobile_no;
 
-    if (!access_key || !store_code || !project_code) {
+    if (!store_code) {
       return res.status(400).json({
         success: false,
-        message: 'access_key, store_code, and project_code are required'
+        message: 'store_code is required'
       });
     }
 
@@ -395,21 +398,21 @@ router.post('/order_payment_processing', async (req, res) => {
 });
 
 // Validate Cart
-router.post('/validate_cart', async (req, res) => {
+router.post('/validate_cart', protect, async (req, res) => {
   try {
     const {
       temp_order_id,
       store_code,
-      project_code,
-      access_key,
       device_id,
       cart_items
     } = req.body;
 
-    if (!temp_order_id || !store_code || !project_code || !cart_items) {
+    const project_code = req.user.project_code;
+
+    if (!temp_order_id || !store_code || !cart_items) {
       return res.status(400).json({
         success: false,
-        message: 'temp_order_id, store_code, project_code, and cart_items are required'
+        message: 'temp_order_id, store_code, and cart_items are required'
       });
     }
 
