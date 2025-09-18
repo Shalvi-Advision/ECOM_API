@@ -1304,7 +1304,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"store_code\": \"\",\n  \"is_active\": true,\n  \"sort_by\": \"pincode\",\n  \"sort_order\": \"asc\"\n}"
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"sort_by\": \"pincode\",\n  \"sort_order\": \"asc\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/admin/pincodes/get_all_pincodes",
@@ -1337,7 +1337,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"pincode\": \"400001\",\n  \"area_name\": \"Andheri\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"district\": \"Mumbai Suburban\",\n  \"store_code\": \"\",\n  \"delivery_charge\": 50.00,\n  \"min_order_amount\": 100.00,\n  \"estimated_delivery_days\": 2,\n  \"is_active\": true\n}"
+              "raw": "{\n  \"pincode\": \"400001\",\n  \"store_code\": \"MUM\",\n  \"mobile_outlet_name\": \"Andheri Store\",\n  \"store_address\": \"123 Main Street, Andheri, Mumbai, Maharashtra\",\n  \"min_order_amount\": 100,\n  \"store_open_time\": \"9:00 AM to 10:00 PM\",\n  \"store_delivery_time\": \"1-2 days\",\n  \"store_offer_name\": \"Welcome Offer\",\n  \"latitude\": \"19.1136\",\n  \"longitude\": \"72.8697\",\n  \"home_delivery\": \"yes\",\n  \"self_pickup\": \"yes\",\n  \"store_message\": \"Store is open\",\n  \"contact_number\": \"9876543210\",\n  \"email\": \"store@example.com\",\n  \"is_enabled\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/admin/pincodes/create_pincode",
@@ -1370,7 +1370,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"pincode_id\": \"\",\n  \"delivery_charge\": 60.00,\n  \"is_active\": true\n}"
+              "raw": "{\n  \"pincode_id\": \"\",\n  \"store_code\": \"MUM\",\n  \"mobile_outlet_name\": \"Updated Andheri Store\",\n  \"min_order_amount\": 150,\n  \"store_message\": \"Store temporarily closed\",\n  \"is_enabled\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/admin/pincodes/update_pincode",
@@ -1418,6 +1418,39 @@
               ]
             },
             "description": "Delete a pincode"
+          }
+        },
+        {
+          "name": "Bulk Update Pincodes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pincode_ids\": [\"pincode_id_1\", \"pincode_id_2\"],\n  \"update_data\": {\n    \"min_order_amount\": 200,\n    \"home_delivery\": \"yes\",\n    \"is_enabled\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/bulk_update_pincodes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "bulk_update_pincodes"
+              ]
+            },
+            "description": "Bulk update multiple pincodes and their store settings"
           }
         },
         {

@@ -34,12 +34,8 @@ const corsOptions = {
       'http://localhost:3001',
       'http://localhost:3002',
       'http://localhost:3003',
-      'http://127.0.0.1:3000',
-      'http://localhost:3000/',
       'https://ecomsetup.manchar.in',
-      'https://www.ecomsetup.manchar.in',
-      'https://ecom-admin-panel.vercel.app',
-      'https://ecom-admin-panel-git-main-shalvi-advision.vercel.app'
+      'https://www.ecomsetup.manchar.in'
     ];
 
     // Add any additional origins from environment variable
@@ -48,22 +44,11 @@ const corsOptions = {
       allowedOrigins.push(...envOrigins);
     }
 
-    // For development, allow all localhost origins
-    if (origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
-      console.log('Allowing localhost origin:', origin);
-      return callback(null, true);
-    }
-
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.log('CORS blocked origin:', origin);
-      // For production, be more permissive
-      if (process.env.NODE_ENV === 'production') {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
@@ -79,24 +64,13 @@ app.use((req, res, next) => {
     'http://localhost:3001',
     'http://localhost:3002',
     'http://localhost:3003',
-    'http://127.0.0.1:3000',
-    'http://localhost:3000/',
     'https://ecomsetup.manchar.in',
-    'https://www.ecomsetup.manchar.in',
-    'https://ecom-admin-panel.vercel.app',
-    'https://ecom-admin-panel-git-main-shalvi-advision.vercel.app'
+    'https://www.ecomsetup.manchar.in'
   ];
 
-  // Allow localhost origins dynamically
-  if (origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
+  if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
-  } else if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  } else if (process.env.NODE_ENV === 'production') {
-    // In production, allow all for now (can be restricted later)
-    res.header('Access-Control-Allow-Origin', origin || '*');
   }
-
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
