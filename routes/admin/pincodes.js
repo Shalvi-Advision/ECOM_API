@@ -138,27 +138,10 @@ router.post('/get_pincode_by_id', async (req, res) => {
   }
 });
 
-// Create new pincode
+// Create new pincode (basic pincode entry only)
 router.post('/create_pincode', async (req, res) => {
   try {
-    const {
-      pincode,
-      store_code,
-      mobile_outlet_name,
-      store_address,
-      min_order_amount = 0,
-      store_open_time,
-      store_delivery_time,
-      store_offer_name,
-      latitude,
-      longitude,
-      home_delivery = 'yes',
-      self_pickup = 'no',
-      store_message,
-      contact_number,
-      email,
-      is_enabled = 'Enabled'
-    } = req.body;
+    const { pincode, is_enabled = true } = req.body;
 
     // Validate required fields
     if (!pincode) {
@@ -169,74 +152,34 @@ router.post('/create_pincode', async (req, res) => {
     }
 
     const pincodesCollection = mongoose.connection.db.collection('pincodes');
-    const pincodeStoresCollection = mongoose.connection.db.collection('pincodestores');
 
     // Check if pincode already exists
     const existingPincode = await pincodesCollection.findOne({
       pincode: pincode.toString()
     });
 
-    let pincodeResult;
-    if (!existingPincode) {
-      // Create new pincode entry
-      const newPincode = {
-        pincode: pincode.toString(),
-        is_enabled: is_enabled ? 'Enabled' : 'Disabled'
-      };
-      pincodeResult = await pincodesCollection.insertOne(newPincode);
-    }
-
-    // Create store-specific entry if store data is provided
-    let storeResult = null;
-    if (store_code) {
-      // Check if store entry already exists for this pincode
-      const existingStoreEntry = await pincodeStoresCollection.findOne({
-        pincode: pincode.toString(),
-        store_code: store_code
+    if (existingPincode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Pincode already exists'
       });
-
-      if (existingStoreEntry) {
-        return res.status(400).json({
-          success: false,
-          message: 'Store entry already exists for this pincode'
-        });
-      }
-
-      const newStoreEntry = {
-        pincode: pincode.toString(),
-        store_code: store_code,
-        mobile_outlet_name: mobile_outlet_name || '',
-        store_address: store_address || '',
-        min_order_amount: parseInt(min_order_amount) || 0,
-        store_open_time: store_open_time || '',
-        store_delivery_time: store_delivery_time || '',
-        store_offer_name: store_offer_name || '',
-        latitude: latitude || '',
-        longitude: longitude || '',
-        home_delivery: home_delivery || 'yes',
-        self_pickup: self_pickup || 'no',
-        store_message: store_message || '',
-        contact_number: contact_number || '',
-        email: email || '',
-        is_enabled: is_enabled ? 'Enabled' : 'Disabled'
-      };
-
-      storeResult = await pincodeStoresCollection.insertOne(newStoreEntry);
     }
+
+    // Create new pincode entry
+    const newPincode = {
+      pincode: pincode.toString(),
+      is_enabled: is_enabled ? 'Enabled' : 'Disabled'
+    };
+
+    const result = await pincodesCollection.insertOne(newPincode);
 
     res.status(201).json({
       success: true,
       message: 'Pincode created successfully',
       data: {
-        pincode: {
-          _id: pincodeResult?.insertedId,
-          pincode: pincode.toString(),
-          is_enabled: is_enabled ? 'Enabled' : 'Disabled'
-        },
-        store: storeResult ? {
-          _id: storeResult.insertedId,
-          ...req.body
-        } : null
+        _id: result.insertedId,
+        ...newPincode,
+        stores: [] // Empty stores array initially
       }
     });
 
@@ -249,28 +192,110 @@ router.post('/create_pincode', async (req, res) => {
   }
 });
 
-// Update pincode
-router.post('/update_pincode', async (req, res) => {
+// Create new store for an existing pincode
+router.post('/create_store', async (req, res) => {
   try {
     const {
-      pincode_id,
       pincode,
       store_code,
       mobile_outlet_name,
       store_address,
-      min_order_amount,
-      store_open_time,
-      store_delivery_time,
-      store_offer_name,
-      latitude,
-      longitude,
-      home_delivery,
-      self_pickup,
-      store_message,
+      min_order_amount = 500,
+      store_open_time = '9 am to 10 pm',
+      store_delivery_time = 'Day + 1 day',
+      store_offer_name = 'Upto 50% Off',
+      latitude = '',
+      longitude = '',
+      home_delivery = 'yes',
+      self_pickup = 'no',
+      store_message = 'We are not accepting any Online Order, sorry for inconvenience',
       contact_number,
-      email,
-      is_enabled
+      email = 'support@patelrpl.net',
+      whatsappnumber,
+      is_enabled = true
     } = req.body;
+
+    // Validate required fields
+    if (!pincode || !store_code || !mobile_outlet_name) {
+      return res.status(400).json({
+        success: false,
+        message: 'pincode, store_code, and mobile_outlet_name are required'
+      });
+    }
+
+    const pincodesCollection = mongoose.connection.db.collection('pincodes');
+    const pincodeStoresCollection = mongoose.connection.db.collection('pincodestores');
+
+    // Check if pincode exists
+    const existingPincode = await pincodesCollection.findOne({
+      pincode: pincode.toString()
+    });
+
+    if (!existingPincode) {
+      return res.status(404).json({
+        success: false,
+        message: 'Pincode not found. Please create the pincode first.'
+      });
+    }
+
+    // Check if store code already exists for this pincode
+    const existingStore = await pincodeStoresCollection.findOne({
+      pincode: pincode.toString(),
+      store_code: store_code
+    });
+
+    if (existingStore) {
+      return res.status(400).json({
+        success: false,
+        message: 'Store code already exists for this pincode'
+      });
+    }
+
+    // Create new store entry
+    const newStore = {
+      pincode: pincode.toString(),
+      store_code: store_code,
+      mobile_outlet_name: mobile_outlet_name,
+      store_address: store_address || '',
+      min_order_amount: parseInt(min_order_amount),
+      store_open_time: store_open_time,
+      store_delivery_time: store_delivery_time,
+      store_offer_name: store_offer_name,
+      latitude: latitude,
+      longitude: longitude,
+      home_delivery: home_delivery,
+      self_pickup: self_pickup,
+      store_message: store_message,
+      contact_number: contact_number || '',
+      email: email,
+      whatsappnumber: whatsappnumber || contact_number || '',
+      is_enabled: is_enabled ? 'Enabled' : 'Disabled'
+    };
+
+    const result = await pincodeStoresCollection.insertOne(newStore);
+
+    res.status(201).json({
+      success: true,
+      message: 'Store created successfully',
+      data: {
+        _id: result.insertedId,
+        ...newStore
+      }
+    });
+
+  } catch (error) {
+    console.error('Error creating store:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create store'
+    });
+  }
+});
+
+// Update pincode (basic pincode details only)
+router.post('/update_pincode', async (req, res) => {
+  try {
+    const { pincode_id, pincode, is_enabled } = req.body;
 
     if (!pincode_id) {
       return res.status(400).json({
@@ -294,62 +319,53 @@ router.post('/update_pincode', async (req, res) => {
       });
     }
 
-    // Update pincode data
-    const pincodeUpdateData = {};
-    if (pincode !== undefined) pincodeUpdateData.pincode = pincode.toString();
-    if (is_enabled !== undefined) pincodeUpdateData.is_enabled = is_enabled ? 'Enabled' : 'Disabled';
-
-    let pincodeResult = null;
-    if (Object.keys(pincodeUpdateData).length > 0) {
-      pincodeResult = await pincodesCollection.updateOne(
-        { _id: new mongoose.Types.ObjectId(pincode_id) },
-        { $set: pincodeUpdateData }
-      );
-    }
-
-    // Update or create store data if store_code is provided
-    let storeResult = null;
-    if (store_code) {
-      const storeUpdateData = {};
-      if (mobile_outlet_name !== undefined) storeUpdateData.mobile_outlet_name = mobile_outlet_name;
-      if (store_address !== undefined) storeUpdateData.store_address = store_address;
-      if (min_order_amount !== undefined) storeUpdateData.min_order_amount = parseInt(min_order_amount);
-      if (store_open_time !== undefined) storeUpdateData.store_open_time = store_open_time;
-      if (store_delivery_time !== undefined) storeUpdateData.store_delivery_time = store_delivery_time;
-      if (store_offer_name !== undefined) storeUpdateData.store_offer_name = store_offer_name;
-      if (latitude !== undefined) storeUpdateData.latitude = latitude;
-      if (longitude !== undefined) storeUpdateData.longitude = longitude;
-      if (home_delivery !== undefined) storeUpdateData.home_delivery = home_delivery;
-      if (self_pickup !== undefined) storeUpdateData.self_pickup = self_pickup;
-      if (store_message !== undefined) storeUpdateData.store_message = store_message;
-      if (contact_number !== undefined) storeUpdateData.contact_number = contact_number;
-      if (email !== undefined) storeUpdateData.email = email;
-      if (is_enabled !== undefined) storeUpdateData.is_enabled = is_enabled ? 'Enabled' : 'Disabled';
-
-      // Check if store entry exists
-      const existingStoreEntry = await pincodeStoresCollection.findOne({
-        pincode: existingPincode.pincode,
-        store_code: store_code
+    // Check if new pincode is already taken
+    if (pincode && pincode !== existingPincode.pincode) {
+      const duplicatePincode = await pincodesCollection.findOne({
+        pincode: pincode.toString(),
+        _id: { $ne: new mongoose.Types.ObjectId(pincode_id) }
       });
-
-      if (existingStoreEntry) {
-        // Update existing store entry
-        storeResult = await pincodeStoresCollection.updateOne(
-          { pincode: existingPincode.pincode, store_code: store_code },
-          { $set: storeUpdateData }
-        );
-      } else {
-        // Create new store entry
-        const newStoreEntry = {
-          pincode: existingPincode.pincode,
-          store_code: store_code,
-          ...storeUpdateData
-        };
-        storeResult = await pincodeStoresCollection.insertOne(newStoreEntry);
+      if (duplicatePincode) {
+        return res.status(400).json({
+          success: false,
+          message: 'Pincode already exists'
+        });
       }
     }
 
-    // Get updated pincode with store data
+    // Build update data
+    const updateData = {};
+    if (pincode !== undefined) updateData.pincode = pincode.toString();
+    if (is_enabled !== undefined) updateData.is_enabled = is_enabled ? 'Enabled' : 'Disabled';
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid fields to update'
+      });
+    }
+
+    const result = await pincodesCollection.updateOne(
+      { _id: new mongoose.Types.ObjectId(pincode_id) },
+      { $set: updateData }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No changes made to pincode'
+      });
+    }
+
+    // If pincode was changed, update all associated stores
+    if (pincode && pincode !== existingPincode.pincode) {
+      await pincodeStoresCollection.updateMany(
+        { pincode: existingPincode.pincode },
+        { $set: { pincode: pincode.toString() } }
+      );
+    }
+
+    // Get updated pincode with stores
     const updatedPincode = await pincodesCollection.findOne({
       _id: new mongoose.Types.ObjectId(pincode_id)
     });
@@ -358,18 +374,14 @@ router.post('/update_pincode', async (req, res) => {
       pincode: updatedPincode.pincode
     }).toArray();
 
-    const enrichedPincode = {
-      ...updatedPincode,
-      stores: stores,
-      is_active: updatedPincode.is_enabled === 'Enabled',
-      created_at: updatedPincode._id.getTimestamp(),
-      updated_at: new Date()
-    };
-
     res.json({
       success: true,
       message: 'Pincode updated successfully',
-      data: enrichedPincode
+      data: {
+        ...updatedPincode,
+        stores: stores,
+        is_active: updatedPincode.is_enabled === 'Enabled'
+      }
     });
 
   } catch (error) {
@@ -377,6 +389,200 @@ router.post('/update_pincode', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update pincode'
+    });
+  }
+});
+
+// Get all stores for a specific pincode
+router.post('/get_stores_by_pincode', async (req, res) => {
+  try {
+    const { pincode } = req.body;
+
+    if (!pincode) {
+      return res.status(400).json({
+        success: false,
+        message: 'pincode is required'
+      });
+    }
+
+    const pincodeStoresCollection = mongoose.connection.db.collection('pincodestores');
+
+    const stores = await pincodeStoresCollection.find({
+      pincode: pincode.toString()
+    }).sort({ store_code: 1 }).toArray();
+
+    res.json({
+      success: true,
+      message: stores.length > 0 ? 'Stores retrieved successfully' : 'No stores found for this pincode',
+      data: stores,
+      pincode: pincode,
+      total_stores: stores.length
+    });
+
+  } catch (error) {
+    console.error('Error getting stores by pincode:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Update store details
+router.post('/update_store', async (req, res) => {
+  try {
+    const {
+      pincode,
+      store_code,
+      mobile_outlet_name,
+      store_address,
+      min_order_amount,
+      store_open_time,
+      store_delivery_time,
+      store_offer_name,
+      latitude,
+      longitude,
+      home_delivery,
+      self_pickup,
+      store_message,
+      contact_number,
+      email,
+      whatsappnumber,
+      is_enabled
+    } = req.body;
+
+    if (!pincode || !store_code) {
+      return res.status(400).json({
+        success: false,
+        message: 'pincode and store_code are required'
+      });
+    }
+
+    const pincodeStoresCollection = mongoose.connection.db.collection('pincodestores');
+
+    // Check if store exists
+    const existingStore = await pincodeStoresCollection.findOne({
+      pincode: pincode.toString(),
+      store_code: store_code
+    });
+
+    if (!existingStore) {
+      return res.status(404).json({
+        success: false,
+        message: 'Store not found'
+      });
+    }
+
+    // Build update data
+    const updateData = {};
+    if (mobile_outlet_name !== undefined) updateData.mobile_outlet_name = mobile_outlet_name;
+    if (store_address !== undefined) updateData.store_address = store_address;
+    if (min_order_amount !== undefined) updateData.min_order_amount = parseInt(min_order_amount);
+    if (store_open_time !== undefined) updateData.store_open_time = store_open_time;
+    if (store_delivery_time !== undefined) updateData.store_delivery_time = store_delivery_time;
+    if (store_offer_name !== undefined) updateData.store_offer_name = store_offer_name;
+    if (latitude !== undefined) updateData.latitude = latitude;
+    if (longitude !== undefined) updateData.longitude = longitude;
+    if (home_delivery !== undefined) updateData.home_delivery = home_delivery;
+    if (self_pickup !== undefined) updateData.self_pickup = self_pickup;
+    if (store_message !== undefined) updateData.store_message = store_message;
+    if (contact_number !== undefined) updateData.contact_number = contact_number;
+    if (email !== undefined) updateData.email = email;
+    if (whatsappnumber !== undefined) updateData.whatsappnumber = whatsappnumber;
+    if (is_enabled !== undefined) updateData.is_enabled = is_enabled ? 'Enabled' : 'Disabled';
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid fields to update'
+      });
+    }
+
+    const result = await pincodeStoresCollection.updateOne(
+      { pincode: pincode.toString(), store_code: store_code },
+      { $set: updateData }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No changes made to store'
+      });
+    }
+
+    // Get updated store
+    const updatedStore = await pincodeStoresCollection.findOne({
+      pincode: pincode.toString(),
+      store_code: store_code
+    });
+
+    res.json({
+      success: true,
+      message: 'Store updated successfully',
+      data: updatedStore
+    });
+
+  } catch (error) {
+    console.error('Error updating store:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update store'
+    });
+  }
+});
+
+// Delete store
+router.post('/delete_store', async (req, res) => {
+  try {
+    const { pincode, store_code } = req.body;
+
+    if (!pincode || !store_code) {
+      return res.status(400).json({
+        success: false,
+        message: 'pincode and store_code are required'
+      });
+    }
+
+    const pincodeStoresCollection = mongoose.connection.db.collection('pincodestores');
+
+    // Check if store exists
+    const existingStore = await pincodeStoresCollection.findOne({
+      pincode: pincode.toString(),
+      store_code: store_code
+    });
+
+    if (!existingStore) {
+      return res.status(404).json({
+        success: false,
+        message: 'Store not found'
+      });
+    }
+
+    const result = await pincodeStoresCollection.deleteOne({
+      pincode: pincode.toString(),
+      store_code: store_code
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to delete store'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Store deleted successfully',
+      data: {
+        deleted_store: existingStore
+      }
+    });
+
+  } catch (error) {
+    console.error('Error deleting store:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete store'
     });
   }
 });

@@ -1337,7 +1337,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"pincode\": \"400001\",\n  \"store_code\": \"MUM\",\n  \"mobile_outlet_name\": \"Andheri Store\",\n  \"store_address\": \"123 Main Street, Andheri, Mumbai, Maharashtra\",\n  \"min_order_amount\": 100,\n  \"store_open_time\": \"9:00 AM to 10:00 PM\",\n  \"store_delivery_time\": \"1-2 days\",\n  \"store_offer_name\": \"Welcome Offer\",\n  \"latitude\": \"19.1136\",\n  \"longitude\": \"72.8697\",\n  \"home_delivery\": \"yes\",\n  \"self_pickup\": \"yes\",\n  \"store_message\": \"Store is open\",\n  \"contact_number\": \"9876543210\",\n  \"email\": \"store@example.com\",\n  \"is_enabled\": true\n}"
+              "raw": "{\n  \"pincode\": \"400001\",\n  \"is_enabled\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/admin/pincodes/create_pincode",
@@ -1421,6 +1421,138 @@
           }
         },
         {
+          "name": "Create Store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pincode\": \"400001\",\n  \"store_code\": \"MUM\",\n  \"mobile_outlet_name\": \"Andheri Store\",\n  \"store_address\": \"123 Main Street, Andheri, Mumbai, Maharashtra\",\n  \"min_order_amount\": 500,\n  \"store_open_time\": \"9 am to 10 pm\",\n  \"store_delivery_time\": \"Day + 1 day\",\n  \"store_offer_name\": \"Upto 50% Off\",\n  \"latitude\": \"19.1136\",\n  \"longitude\": \"72.8697\",\n  \"home_delivery\": \"yes\",\n  \"self_pickup\": \"no\",\n  \"store_message\": \"We are not accepting any Online Order, sorry for inconvenience\",\n  \"contact_number\": \"9876543210\",\n  \"email\": \"support@patelrpl.net\",\n  \"whatsappnumber\": \"9876543210\",\n  \"is_enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/create_store",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "create_store"
+              ]
+            },
+            "description": "Create a new store/outlet for an existing pincode"
+          }
+        },
+        {
+          "name": "Get Stores by Pincode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pincode\": \"421002\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/get_stores_by_pincode",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "get_stores_by_pincode"
+              ]
+            },
+            "description": "Get all stores/outlets for a specific pincode"
+          }
+        },
+        {
+          "name": "Update Store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pincode\": \"421002\",\n  \"store_code\": \"ULN\",\n  \"min_order_amount\": 600,\n  \"store_message\": \"Store is temporarily closed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/update_store",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "update_store"
+              ]
+            },
+            "description": "Update store/outlet details"
+          }
+        },
+        {
+          "name": "Delete Store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pincode\": \"421002\",\n  \"store_code\": \"ULN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/delete_store",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "delete_store"
+              ]
+            },
+            "description": "Delete a store/outlet"
+          }
+        },
+        {
           "name": "Bulk Update Pincodes",
           "request": {
             "method": "POST",
@@ -1436,7 +1568,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"pincode_ids\": [\"pincode_id_1\", \"pincode_id_2\"],\n  \"update_data\": {\n    \"min_order_amount\": 200,\n    \"home_delivery\": \"yes\",\n    \"is_enabled\": true\n  }\n}"
+              "raw": "{\n  \"pincode_ids\": [\"pincode_id_1\", \"pincode_id_2\"],\n  \"update_data\": {\n    \"is_enabled\": false\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/admin/pincodes/bulk_update_pincodes",
@@ -1450,7 +1582,7 @@
                 "bulk_update_pincodes"
               ]
             },
-            "description": "Bulk update multiple pincodes and their store settings"
+            "description": "Bulk update multiple pincodes (basic pincode settings only)"
           }
         },
         {
