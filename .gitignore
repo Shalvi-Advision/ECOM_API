@@ -103,3 +103,20 @@ backups/
 *.db
 *.sqlite
 *.sqlite3
+
+# Large data files and collections
+*.json
+!package.json
+!package-lock.json
+
+# Data directories and large collections
+**/data/
+**/collections/
+**/Patel*/
+**/*masters.json
+**/*collection*.json
+
+# Database dumps and exports
+*.dump
+*.bak
+*.backup
