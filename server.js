@@ -118,6 +118,18 @@ app.use('/api/migration', require('./routes/migration'));
 // Mobile API routes (matching Postman collection)
 app.use('/api/mobile', require('./routes/mobile_api'));
 
+// Admin Routes
+app.use('/api/admin/auth', require('./routes/admin/auth'));
+app.use('/api/admin/products', require('./routes/admin/products'));
+app.use('/api/admin/categories', require('./routes/admin/categories'));
+app.use('/api/admin/departments', require('./routes/admin/departments'));
+app.use('/api/admin/subcategories', require('./routes/admin/subcategories'));
+app.use('/api/admin/banners', require('./routes/admin/banners'));
+app.use('/api/admin/pincodes', require('./routes/admin/pincodes'));
+app.use('/api/admin/users', require('./routes/admin/users'));
+app.use('/api/admin/orders', require('./routes/admin/orders'));
+app.use('/api/admin/payments', require('./routes/admin/payments'));
+
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
