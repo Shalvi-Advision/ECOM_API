@@ -1318,7 +1318,40 @@
                 "get_all_pincodes"
               ]
             },
-            "description": "Get paginated list of all pincodes"
+            "description": "Get paginated list of all pincodes with their associated stores"
+          }
+        },
+        {
+          "name": "Get Pincode by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pincode_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/get_pincode_by_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "get_pincode_by_id"
+              ]
+            },
+            "description": "Get specific pincode details with its associated stores"
           }
         },
         {
@@ -1351,7 +1384,7 @@
                 "create_pincode"
               ]
             },
-            "description": "Create a new pincode for delivery service"
+            "description": "Create a new basic pincode entry (without store details)"
           }
         },
         {
@@ -1384,7 +1417,7 @@
                 "update_pincode"
               ]
             },
-            "description": "Update existing pincode details"
+            "description": "Update basic pincode details (use Update Store for outlet information)"
           }
         },
         {
@@ -1417,7 +1450,7 @@
                 "delete_pincode"
               ]
             },
-            "description": "Delete a pincode"
+            "description": "Delete a pincode and all its associated stores/outlets"
           }
         },
         {
@@ -1450,7 +1483,7 @@
                 "create_store"
               ]
             },
-            "description": "Create a new store/outlet for an existing pincode"
+            "description": "Create a new store/outlet for an existing pincode (pincode must exist first)"
           }
         },
         {
@@ -1615,7 +1648,7 @@
                 "check_pincode_serviceability"
               ]
             },
-            "description": "Check if a pincode is serviceable for delivery"
+            "description": "Check if a pincode is serviceable (must have enabled pincode and at least one enabled store)"
           }
         }
       ]
