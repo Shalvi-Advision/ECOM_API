@@ -470,4 +470,300 @@ router.post('/get_payments_by_date_range', async (req, res) => {
   }
 });
 
+// ===== PAYMENT MODES CRUD ENDPOINTS =====
+
+// Get all payment modes
+router.post('/get_all_payment_modes', async (req, res) => {
+  try {
+    const { page = 1, limit = 50, search, is_enabled, sort_by = 'payment_mode_name', sort_order = 'asc' } = req.body;
+
+    const paymentModesCollection = mongoose.connection.db.collection('paymentmodes');
+
+    // Build query
+    const query = {};
+    if (search) {
+      query.payment_mode_name = { $regex: search, $options: 'i' };
+    }
+    if (is_enabled !== undefined) {
+      query.is_enabled = is_enabled ? 'Yes' : 'No';
+    }
+
+    // Build sort object
+    const sortObj = {};
+    sortObj[sort_by] = sort_order === 'desc' ? -1 : 1;
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Get total count
+    const totalCount = await paymentModesCollection.countDocuments(query);
+
+    // Get payment modes
+    const paymentModes = await paymentModesCollection.find(query)
+      .sort(sortObj)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .toArray();
+
+    const totalPages = Math.ceil(totalCount / parseInt(limit));
+
+    res.json({
+      success: true,
+      message: paymentModes.length > 0 ? 'Payment modes retrieved successfully' : 'No payment modes found',
+      data: paymentModes,
+      pagination: {
+        current_page: parseInt(page),
+        total_pages: totalPages,
+        total_payment_modes: totalCount,
+        per_page: parseInt(limit),
+        has_next: parseInt(page) < totalPages,
+        has_prev: parseInt(page) > 1
+      },
+      filters: {
+        search,
+        is_enabled
+      }
+    });
+
+  } catch (error) {
+    console.error('Error getting all payment modes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Get payment mode by ID
+router.post('/get_payment_mode_by_id', async (req, res) => {
+  try {
+    const { payment_mode_id } = req.body;
+
+    if (!payment_mode_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'payment_mode_id is required'
+      });
+    }
+
+    const paymentModesCollection = mongoose.connection.db.collection('paymentmodes');
+
+    const paymentMode = await paymentModesCollection.findOne({
+      _id: new mongoose.Types.ObjectId(payment_mode_id)
+    });
+
+    if (!paymentMode) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment mode not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Payment mode retrieved successfully',
+      data: paymentMode
+    });
+
+  } catch (error) {
+    console.error('Error getting payment mode by ID:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Create payment mode
+router.post('/create_payment_mode', async (req, res) => {
+  try {
+    const { payment_mode_name, is_enabled = true } = req.body;
+
+    // Validate required fields
+    if (!payment_mode_name) {
+      return res.status(400).json({
+        success: false,
+        message: 'payment_mode_name is required'
+      });
+    }
+
+    const paymentModesCollection = mongoose.connection.db.collection('paymentmodes');
+
+    // Check if payment mode already exists
+    const existingPaymentMode = await paymentModesCollection.findOne({
+      payment_mode_name: payment_mode_name.trim()
+    });
+
+    if (existingPaymentMode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment mode with this name already exists'
+      });
+    }
+
+    // Create new payment mode
+    const newPaymentMode = {
+      payment_mode_name: payment_mode_name.trim(),
+      is_enabled: is_enabled ? 'Yes' : 'No'
+    };
+
+    const result = await paymentModesCollection.insertOne(newPaymentMode);
+
+    res.status(201).json({
+      success: true,
+      message: 'Payment mode created successfully',
+      data: {
+        _id: result.insertedId,
+        ...newPaymentMode
+      }
+    });
+
+  } catch (error) {
+    console.error('Error creating payment mode:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create payment mode'
+    });
+  }
+});
+
+// Update payment mode
+router.post('/update_payment_mode', async (req, res) => {
+  try {
+    const { payment_mode_id, payment_mode_name, is_enabled } = req.body;
+
+    if (!payment_mode_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'payment_mode_id is required'
+      });
+    }
+
+    const paymentModesCollection = mongoose.connection.db.collection('paymentmodes');
+
+    // Check if payment mode exists
+    const existingPaymentMode = await paymentModesCollection.findOne({
+      _id: new mongoose.Types.ObjectId(payment_mode_id)
+    });
+
+    if (!existingPaymentMode) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment mode not found'
+      });
+    }
+
+    // Check if name is being changed and if it's already taken
+    if (payment_mode_name && payment_mode_name.trim() !== existingPaymentMode.payment_mode_name) {
+      const duplicatePaymentMode = await paymentModesCollection.findOne({
+        payment_mode_name: payment_mode_name.trim(),
+        _id: { $ne: new mongoose.Types.ObjectId(payment_mode_id) }
+      });
+      if (duplicatePaymentMode) {
+        return res.status(400).json({
+          success: false,
+          message: 'Payment mode name already exists'
+        });
+      }
+    }
+
+    // Build update data
+    const updateData = {};
+    if (payment_mode_name !== undefined) updateData.payment_mode_name = payment_mode_name.trim();
+    if (is_enabled !== undefined) updateData.is_enabled = is_enabled ? 'Yes' : 'No';
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid fields to update'
+      });
+    }
+
+    const result = await paymentModesCollection.updateOne(
+      { _id: new mongoose.Types.ObjectId(payment_mode_id) },
+      { $set: updateData }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No changes made to payment mode'
+      });
+    }
+
+    // Get updated payment mode
+    const updatedPaymentMode = await paymentModesCollection.findOne({
+      _id: new mongoose.Types.ObjectId(payment_mode_id)
+    });
+
+    res.json({
+      success: true,
+      message: 'Payment mode updated successfully',
+      data: updatedPaymentMode
+    });
+
+  } catch (error) {
+    console.error('Error updating payment mode:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update payment mode'
+    });
+  }
+});
+
+// Delete payment mode
+router.post('/delete_payment_mode', async (req, res) => {
+  try {
+    const { payment_mode_id } = req.body;
+
+    if (!payment_mode_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'payment_mode_id is required'
+      });
+    }
+
+    const paymentModesCollection = mongoose.connection.db.collection('paymentmodes');
+
+    // Check if payment mode exists
+    const existingPaymentMode = await paymentModesCollection.findOne({
+      _id: new mongoose.Types.ObjectId(payment_mode_id)
+    });
+
+    if (!existingPaymentMode) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment mode not found'
+      });
+    }
+
+    const result = await paymentModesCollection.deleteOne({
+      _id: new mongoose.Types.ObjectId(payment_mode_id)
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to delete payment mode'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Payment mode deleted successfully',
+      data: {
+        deleted_payment_mode_id: payment_mode_id,
+        deleted_payment_mode: existingPaymentMode
+      }
+    });
+
+  } catch (error) {
+    console.error('Error deleting payment mode:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete payment mode'
+    });
+  }
+});
+
 module.exports = router;

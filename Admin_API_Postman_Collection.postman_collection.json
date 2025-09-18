@@ -975,6 +975,171 @@
             },
             "description": "Get comprehensive payment statistics"
           }
+        },
+        {
+          "name": "Get All Payment Modes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"is_enabled\": true,\n  \"sort_by\": \"payment_mode_name\",\n  \"sort_order\": \"asc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/payments/get_all_payment_modes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments",
+                "get_all_payment_modes"
+              ]
+            },
+            "description": "Get paginated list of all payment modes"
+          }
+        },
+        {
+          "name": "Get Payment Mode by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_mode_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/payments/get_payment_mode_by_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments",
+                "get_payment_mode_by_id"
+              ]
+            },
+            "description": "Get specific payment mode details by ID"
+          }
+        },
+        {
+          "name": "Create Payment Mode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_mode_name\": \"Cash on Delivery\",\n  \"is_enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/payments/create_payment_mode",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments",
+                "create_payment_mode"
+              ]
+            },
+            "description": "Create a new payment mode"
+          }
+        },
+        {
+          "name": "Update Payment Mode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_mode_id\": \"\",\n  \"payment_mode_name\": \"Updated Payment Mode\",\n  \"is_enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/payments/update_payment_mode",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments",
+                "update_payment_mode"
+              ]
+            },
+            "description": "Update existing payment mode"
+          }
+        },
+        {
+          "name": "Delete Payment Mode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_mode_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/payments/delete_payment_mode",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments",
+                "delete_payment_mode"
+              ]
+            },
+            "description": "Delete a payment mode"
+          }
         }
       ]
     },
@@ -1281,6 +1446,176 @@
               ]
             },
             "description": "Delete a banner"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delivery Slots Management",
+      "item": [
+        {
+          "name": "Get All Delivery Slots",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"store_code\": \"\",\n  \"is_active\": true,\n  \"sort_by\": \"delivery_slot_from\",\n  \"sort_order\": \"asc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/deliveryslots/get_all_delivery_slots",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "deliveryslots",
+                "get_all_delivery_slots"
+              ]
+            },
+            "description": "Get paginated list of all delivery slots"
+          }
+        },
+        {
+          "name": "Get Delivery Slot by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"delivery_slot_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/deliveryslots/get_delivery_slot_by_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "deliveryslots",
+                "get_delivery_slot_by_id"
+              ]
+            },
+            "description": "Get specific delivery slot details by ID"
+          }
+        },
+        {
+          "name": "Create Delivery Slot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"delivery_slot_from\": \"09:00:00\",\n  \"delivery_slot_to\": \"12:00:00\",\n  \"store_code\": \"STORE001\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/deliveryslots/create_delivery_slot",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "deliveryslots",
+                "create_delivery_slot"
+              ]
+            },
+            "description": "Create a new delivery slot for a store (use HH:MM:SS format)"
+          }
+        },
+        {
+          "name": "Update Delivery Slot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"delivery_slot_id\": \"\",\n  \"delivery_slot_from\": \"10:00:00\",\n  \"delivery_slot_to\": \"13:00:00\",\n  \"store_code\": \"STORE001\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/deliveryslots/update_delivery_slot",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "deliveryslots",
+                "update_delivery_slot"
+              ]
+            },
+            "description": "Update existing delivery slot details"
+          }
+        },
+        {
+          "name": "Delete Delivery Slot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"delivery_slot_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/deliveryslots/delete_delivery_slot",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "deliveryslots",
+                "delete_delivery_slot"
+              ]
+            },
+            "description": "Delete a delivery slot"
           }
         }
       ]

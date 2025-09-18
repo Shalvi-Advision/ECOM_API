@@ -129,6 +129,7 @@ app.use('/api/admin/pincodes', require('./routes/admin/pincodes'));
 app.use('/api/admin/users', require('./routes/admin/users'));
 app.use('/api/admin/orders', require('./routes/admin/orders'));
 app.use('/api/admin/payments', require('./routes/admin/payments'));
+app.use('/api/admin/deliveryslots', require('./routes/admin/deliveryslots'));
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
