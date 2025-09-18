@@ -535,6 +535,242 @@
       ]
     },
     {
+      "name": "Subcategories Management",
+      "item": [
+        {
+          "name": "Get All Subcategories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"category_id\": \"\",\n  \"dept_id\": \"\",\n  \"sort_by\": \"sub_category_name\",\n  \"sort_order\": \"asc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/subcategories/get_all_subcategories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "subcategories",
+                "get_all_subcategories"
+              ]
+            },
+            "description": "Get paginated list of all subcategories with filtering"
+          }
+        },
+        {
+          "name": "Get Subcategory by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sub_category_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/subcategories/get_subcategory_by_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "subcategories",
+                "get_subcategory_by_id"
+              ]
+            },
+            "description": "Get specific subcategory details by ID"
+          }
+        },
+        {
+          "name": "Create Subcategory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sub_category_id\": \"SUB001\",\n  \"sub_category_name\": \"Sample Subcategory\",\n  \"category_id\": \"\",\n  \"dept_id\": \"\",\n  \"sequence_id\": 1,\n  \"is_active\": true,\n  \"image_url\": \"\",\n  \"description\": \"Subcategory description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/subcategories/create_subcategory",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "subcategories",
+                "create_subcategory"
+              ]
+            },
+            "description": "Create a new subcategory"
+          }
+        },
+        {
+          "name": "Update Subcategory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sub_category_id\": \"\",\n  \"sub_category_name\": \"Updated Subcategory\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/subcategories/update_subcategory",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "subcategories",
+                "update_subcategory"
+              ]
+            },
+            "description": "Update existing subcategory details"
+          }
+        },
+        {
+          "name": "Delete Subcategory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sub_category_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/subcategories/delete_subcategory",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "subcategories",
+                "delete_subcategory"
+              ]
+            },
+            "description": "Delete a subcategory"
+          }
+        },
+        {
+          "name": "Get Subcategories by Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/subcategories/get_subcategories_by_category",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "subcategories",
+                "get_subcategories_by_category"
+              ]
+            },
+            "description": "Get all subcategories for a specific category"
+          }
+        },
+        {
+          "name": "Bulk Update Subcategories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sub_category_ids\": [\"SUB001\", \"SUB002\"],\n  \"update_data\": {\n    \"is_active\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/subcategories/bulk_update_subcategories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "subcategories",
+                "bulk_update_subcategories"
+              ]
+            },
+            "description": "Bulk update multiple subcategories"
+          }
+        }
+      ]
+    },
+    {
       "name": "Departments Management",
       "item": [
         {
