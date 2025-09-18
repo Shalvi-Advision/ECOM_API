@@ -27,23 +27,23 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     // Define allowed origins
     const allowedOrigins = [
       'http://localhost:3000',
-      'http://localhost:3001', 
+      'http://localhost:3001',
       'http://localhost:3002',
       'http://localhost:3003',
       'https://ecomsetup.manchar.in',
       'https://www.ecomsetup.manchar.in'
     ];
-    
+
     // Add any additional origins from environment variable
     if (process.env.FRONTEND_URL) {
       const envOrigins = process.env.FRONTEND_URL.split(',').map(url => url.trim());
       allowedOrigins.push(...envOrigins);
     }
-    
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -61,20 +61,20 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   const allowedOrigins = [
     'http://localhost:3000',
-    'http://localhost:3001', 
+    'http://localhost:3001',
     'http://localhost:3002',
     'http://localhost:3003',
     'https://ecomsetup.manchar.in',
     'https://www.ecomsetup.manchar.in'
   ];
-  
+
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
   }
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
@@ -114,6 +114,9 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/migration', require('./routes/migration'));
+
+// Mobile API routes (matching Postman collection)
+app.use('/api/mobile', require('./routes/mobile_api'));
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
