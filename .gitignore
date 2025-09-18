@@ -115,6 +115,10 @@ backups/
 **/Patel*/
 **/*masters.json
 **/*collection*.json
+!Admin_API_Postman_Collection.postman_collection.json
+!Admin_Postman_Environment.postman_environment.json
+!Ecommerce_API_JWT_Collection.postman_collection.json
+!Postman_Environment.postman_environment.json
 
 # Database dumps and exports
 *.dump

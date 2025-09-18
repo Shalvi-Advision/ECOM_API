@@ -1,0 +1,1117 @@
+{
+  "info": {
+    "_postman_id": "ecommerce-api-jwt-collection",
+    "name": "E-commerce API Collection - JWT Authentication",
+    "description": "Complete collection of all e-commerce API endpoints with JWT authentication deployed on Render",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "api-testing",
+    "_collection_link": "https://ecom-api-ozl0.onrender.com"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Check API Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": "Check if the API is running and healthy"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "https://ecom-api-ozl0.onrender.com/api/health",
+                  "protocol": "https",
+                  "host": [
+                    "ecom-api-ozl0",
+                    "onrender",
+                    "com"
+                  ],
+                  "path": [
+                    "api",
+                    "health"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"status\": \"OK\",\n    \"message\": \"E-commerce API is running\",\n    \"timestamp\": \"2025-09-18T14:04:32.899Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🔐 JWT Authentication",
+      "item": [
+        {
+          "name": "1. Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"mobileNo\": \"{{mobile_no}}\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/get_otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "get_otp"
+              ]
+            },
+            "description": "Send OTP to mobile number for authentication"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Validate OTP & Get JWT Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"mobileNo\": \"{{mobile_no}}\",\n    \"otp\": \"1234\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/validate_otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "validate_otp"
+              ]
+            },
+            "description": "Validate OTP and receive JWT token (Use 1234 as demo OTP). Copy the token from response and set it in {{jwt_token}} environment variable.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "if (pm.response.code === 200) {",
+                    "    const response = pm.response.json();",
+                    "    if (response.success && response.data.token) {",
+                    "        pm.environment.set('jwt_token', response.data.token);",
+                    "        console.log('JWT Token saved to environment:', response.data.token.substring(0, 50) + '...');",
+                    "    }",
+                    "}"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "3. Verify JWT Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"{{jwt_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify_token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify_token"
+              ]
+            },
+            "description": "Verify JWT token validity and get token information"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Refresh JWT Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"{{jwt_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh_token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh_token"
+              ]
+            },
+            "description": "Refresh JWT token before it expires"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Logout and invalidate JWT token"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📍 Pincode & Store Management",
+      "item": [
+        {
+          "name": "Check Pincode Serviceability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"pincode\": \"421002\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pincodes/check_if_pincode_exists",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pincodes",
+                "check_if_pincode_exists"
+              ]
+            },
+            "description": "Check if a pincode is serviceable and get associated stores"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pincode-wise Stores",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"pincode\": \"421301\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pincodes/get_pincodewise_outlet",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pincodes",
+                "get_pincodewise_outlet"
+              ]
+            },
+            "description": "Get all stores available for a specific pincode"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Store Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pincodes/get_store_details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pincodes",
+                "get_store_details"
+              ]
+            },
+            "description": "Get detailed information about a specific store"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Pincodes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pincodes/get_pincode_list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pincodes",
+                "get_pincode_list"
+              ]
+            },
+            "description": "Get list of all serviceable pincodes"
+          },
+          "response": []
+        },
+        {
+          "name": "Check Outlet Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pincodes/check_outlet_status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pincodes",
+                "check_outlet_status"
+              ]
+            },
+            "description": "Check if a store/outlet is active"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏪 Department Management",
+      "item": [
+        {
+          "name": "Get All Departments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/departments/get_active_department_list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "departments",
+                "get_active_department_list"
+              ]
+            },
+            "description": "Get list of all active departments"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Additional Offers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"department_id\": \"2\",\n    \"store_code\": \"{{store_code}}\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/departments/get_additional_offers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "departments",
+                "get_additional_offers"
+              ]
+            },
+            "description": "Get additional offers for a specific department"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Seasonal Picks",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/departments/get_seasonal_picks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "departments",
+                "get_seasonal_picks"
+              ]
+            },
+            "description": "Get seasonal picks/products"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📂 Category Management",
+      "item": [
+        {
+          "name": "Get Categories by Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"department_id\": \"2\",\n    \"store_code\": \"{{store_code}}\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/categories/get_active_categories_list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                "get_active_categories_list"
+              ]
+            },
+            "description": "Get all categories for a specific department"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/categories/get_all_categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                "get_all_categories"
+              ]
+            },
+            "description": "Get all categories grouped by department"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📦 Product Management",
+      "item": [
+        {
+          "name": "Get Products List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"dept_id\": \"2\",\n    \"category_id\": \"72\",\n    \"sub_category_id\": \"391\",\n    \"store_code\": \"{{store_code}}\",\n    \"project_code\": \"{{project_code}}\",\n    \"page\": 1,\n    \"limit\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products/get_active_products_list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "get_active_products_list"
+              ]
+            },
+            "description": "Get products with filtering and pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_name\": \"papad\",\n    \"store_code\": \"{{store_code}}\",\n    \"project_code\": \"{{project_code}}\",\n    \"limit\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products/get_search_autocomplete_results",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "get_search_autocomplete_results"
+              ]
+            },
+            "description": "Search products by name for autocomplete"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Details by PCode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"p_code\": \"23263\",\n    \"store_code\": \"{{store_code}}\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products/getpcodeproducts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "getpcodeproducts"
+              ]
+            },
+            "description": "Get detailed product information by product code"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🖼️ Banner Management",
+      "item": [
+        {
+          "name": "Get Banners by Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"banner_type_id\": \"1\",\n    \"store_code\": \"{{store_code}}\",\n    \"platform\": \"Android\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/banners/get_banner",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "banners",
+                "get_banner"
+              ]
+            },
+            "description": "Get banners by type (1=Home Slider 1, 2=Home Slider 2, 3=Bestseller 1, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Popup Screen Banners",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/banners/get_popup_screen",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "banners",
+                "get_popup_screen"
+              ]
+            },
+            "description": "Get popup screen banners"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Banners",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\",\n    \"project_code\": \"{{project_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/banners/get_all_banners",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "banners",
+                "get_all_banners"
+              ]
+            },
+            "description": "Get all banners for a store"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🛒 Shopping Cart & Orders (Authenticated)",
+      "item": [
+        {
+          "name": "Save/Update Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\",\n    \"temp_order_id\": \"{{temp_order_id}}\",\n    \"device_id\": \"{{device_id}}\",\n    \"cart_items\": [\n        {\n            \"pcode\": \"23263\",\n            \"product_name\": \"IND CHA NACNI PAPAD 200GM\",\n            \"product_mrp\": 70,\n            \"selling_price\": 35,\n            \"package_size\": 200,\n            \"package_unit\": \"GM\",\n            \"stock_message\": \"Yes\",\n            \"price_alert_message\": \"Yes\",\n            \"quantity\": 2\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/save_cart",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "save_cart"
+              ]
+            },
+            "description": "Save or update shopping cart items (Requires JWT Authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Orders History",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/get_orders_history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "get_orders_history"
+              ]
+            },
+            "description": "Get user's order history (Requires JWT Authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"temp_order_id\": \"{{temp_order_id}}\",\n    \"store_code\": \"{{store_code}}\",\n    \"device_id\": \"{{device_id}}\",\n    \"cart_items\": [\n        {\n            \"pcode\": \"23263\",\n            \"product_name\": \"IND CHA NACNI PAPAD 200GM\",\n            \"product_mrp\": 70,\n            \"selling_price\": 35,\n            \"package_size\": 200,\n            \"package_unit\": \"GM\",\n            \"stock_message\": \"Yes\",\n            \"price_alert_message\": \"Yes\",\n            \"quantity\": 2\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/validate_cart",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "validate_cart"
+              ]
+            },
+            "description": "Validate cart items and check product availability (Requires JWT Authentication)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 User Management (Authenticated)",
+      "item": [
+        {
+          "name": "Add to Favorites",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"p_code\": \"23263\",\n    \"store_code\": \"{{store_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/add_remove_to_favorites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "add_remove_to_favorites"
+              ]
+            },
+            "description": "Add or remove product from favorites (Requires JWT Authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Favorite Items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/get_favorite_items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "get_favorite_items"
+              ]
+            },
+            "description": "Get user's favorite products (Requires JWT Authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\",\n    \"full_name\": \"John Doe\",\n    \"email_id\": \"john@example.com\",\n    \"delivery_addr_line_1\": \"123 Main Street\",\n    \"delivery_addr_line_2\": \"Near Park\",\n    \"delivery_addr_city\": \"Mumbai\",\n    \"delivery_addr_pincode\": \"421002\",\n    \"is_default\": \"Yes\",\n    \"latitude\": \"19.0760\",\n    \"longitude\": \"72.8777\",\n    \"area_id\": \"Andheri West\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/add_address",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "add_address"
+              ]
+            },
+            "description": "Add a new delivery address (Requires JWT Authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Address List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/get_address_list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "get_address_list"
+              ]
+            },
+            "description": "Get user's saved addresses (Requires JWT Authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add/Update Customer Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"email_id\": \"john@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/add_update_customer_profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "add_update_customer_profile"
+              ]
+            },
+            "description": "Add or update customer profile information (Requires JWT Authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"store_code\": \"{{store_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/get_customer_profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "get_customer_profile"
+              ]
+            },
+            "description": "Get customer profile information (Requires JWT Authentication)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Add any pre-request scripts here"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Add test scripts here",
+          "pm.test(\"Status code is 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "",
+          "pm.test(\"Response has success\", function () {",
+          "    var jsonData = pm.response.json();",
+          "    pm.expect(jsonData.success).to.eql(true);",
+          "});",
+          "",
+          "pm.test(\"Response time is less than 2000ms\", function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://ecom-api-ozl0.onrender.com",
+      "description": "Base URL for the deployed API",
+      "enabled": true
+    },
+    {
+      "key": "store_code",
+      "value": "KLK",
+      "description": "Default store code (Kalyan)",
+      "enabled": true
+    },
+    {
+      "key": "project_code",
+      "value": "RET5890",
+      "description": "Project code for the application",
+      "enabled": true
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "description": "JWT token for authenticated requests (auto-set by login)",
+      "enabled": true
+    },
+    {
+      "key": "mobile_no",
+      "value": "9890354858",
+      "description": "Test mobile number for authentication",
+      "enabled": true
+    },
+    {
+      "key": "device_id",
+      "value": "TEST_DEVICE_123",
+      "description": "Device ID for tracking",
+      "enabled": true
+    },
+    {
+      "key": "temp_order_id",
+      "value": "ORDER_TEMP_TEST_123",
+      "description": "Temporary order ID for cart operations",
+      "enabled": true
+    }
+  ]
+}

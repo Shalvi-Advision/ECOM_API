@@ -1,0 +1,1471 @@
+{
+  "info": {
+    "_postman_id": "admin-api-collection",
+    "name": "Admin API Collection - E-commerce Admin Panel",
+    "description": "Complete collection of admin API endpoints for e-commerce platform management with JWT authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "admin-api-testing",
+    "_collection_link": "https://ecom-api-ozl0.onrender.com"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Check API Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": "Check if the API is running and healthy"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Authentication",
+      "item": [
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\",\n  \"project_code\": \"your_project_code\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/auth/admin_login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "auth",
+                "admin_login"
+              ]
+            },
+            "description": "Login as admin user. Demo credentials: admin/admin123, manager/manager123, staff/staff123"
+          }
+        },
+        {
+          "name": "Verify Admin Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{admin_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/auth/verify_admin_token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "auth",
+                "verify_admin_token"
+              ]
+            },
+            "description": "Verify if the admin token is valid"
+          }
+        },
+        {
+          "name": "Refresh Admin Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{admin_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/auth/refresh_admin_token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "auth",
+                "refresh_admin_token"
+              ]
+            },
+            "description": "Refresh the admin JWT token"
+          }
+        },
+        {
+          "name": "Get Admin Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{admin_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/auth/get_admin_profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "auth",
+                "get_admin_profile"
+              ]
+            },
+            "description": "Get admin user profile information"
+          }
+        },
+        {
+          "name": "Admin Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/auth/admin_logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "auth",
+                "admin_logout"
+              ]
+            },
+            "description": "Logout admin user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products Management",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"sort_by\": \"product_name\",\n  \"sort_order\": \"asc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/get_all_products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "get_all_products"
+              ]
+            },
+            "description": "Get paginated list of all products with filtering and sorting"
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/get_product_by_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "get_product_by_id"
+              ]
+            },
+            "description": "Get specific product details by ID"
+          }
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_code\": \"P001\",\n  \"product_name\": \"Sample Product\",\n  \"category_id\": \"\",\n  \"sub_category_id\": \"\",\n  \"dept_id\": \"\",\n  \"selling_price\": 100.00,\n  \"mrp\": 120.00,\n  \"description\": \"Product description\",\n  \"image_url\": \"\",\n  \"stock_quantity\": 10,\n  \"is_active\": true,\n  \"sequence_id\": 1,\n  \"store_code\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/create_product",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "create_product"
+              ]
+            },
+            "description": "Create a new product"
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"\",\n  \"product_name\": \"Updated Product Name\",\n  \"selling_price\": 150.00,\n  \"stock_quantity\": 20\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/update_product",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "update_product"
+              ]
+            },
+            "description": "Update existing product details"
+          }
+        },
+        {
+          "name": "Update Product Stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"\",\n  \"stock_quantity\": 50,\n  \"operation\": \"set\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/update_product_stock",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "update_product_stock"
+              ]
+            },
+            "description": "Update product stock quantity. Operations: set, add, subtract"
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/delete_product",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "delete_product"
+              ]
+            },
+            "description": "Delete a product"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories Management",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"sort_by\": \"category_name\",\n  \"sort_order\": \"asc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/get_all_categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "get_all_categories"
+              ]
+            },
+            "description": "Get paginated list of all categories"
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": \"C001\",\n  \"category_name\": \"Sample Category\",\n  \"dept_id\": \"\",\n  \"sequence_id\": 1,\n  \"is_active\": true,\n  \"image_url\": \"\",\n  \"description\": \"Category description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/create_category",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "create_category"
+              ]
+            },
+            "description": "Create a new category"
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": \"\",\n  \"category_name\": \"Updated Category\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/update_category",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "update_category"
+              ]
+            },
+            "description": "Update existing category"
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/delete_category",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "delete_category"
+              ]
+            },
+            "description": "Delete a category"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Departments Management",
+      "item": [
+        {
+          "name": "Get All Departments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"sort_by\": \"dept_name\",\n  \"sort_order\": \"asc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/departments/get_all_departments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "departments",
+                "get_all_departments"
+              ]
+            },
+            "description": "Get paginated list of all departments"
+          }
+        },
+        {
+          "name": "Create Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dept_id\": \"D001\",\n  \"dept_name\": \"Sample Department\",\n  \"sequence_id\": 1,\n  \"is_active\": true,\n  \"image_url\": \"\",\n  \"description\": \"Department description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/departments/create_department",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "departments",
+                "create_department"
+              ]
+            },
+            "description": "Create a new department"
+          }
+        },
+        {
+          "name": "Update Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dept_id\": \"\",\n  \"dept_name\": \"Updated Department\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/departments/update_department",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "departments",
+                "update_department"
+              ]
+            },
+            "description": "Update existing department"
+          }
+        },
+        {
+          "name": "Delete Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dept_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/departments/delete_department",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "departments",
+                "delete_department"
+              ]
+            },
+            "description": "Delete a department"
+          }
+        },
+        {
+          "name": "Get Department Statistics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/departments/get_department_stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "departments",
+                "get_department_stats"
+              ]
+            },
+            "description": "Get statistics for all departments"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders Management",
+      "item": [
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"order_status\": \"\",\n  \"payment_status\": \"\",\n  \"sort_by\": \"created_at\",\n  \"sort_order\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/get_all_orders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                "get_all_orders"
+              ]
+            },
+            "description": "Get paginated list of all orders with filtering"
+          }
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"\",\n  \"order_status\": \"confirmed\",\n  \"delivery_notes\": \"Order confirmed and ready for processing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/update_order_status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                "update_order_status"
+              ]
+            },
+            "description": "Update order status (pending, confirmed, preparing, ready, delivered, cancelled)"
+          }
+        },
+        {
+          "name": "Update Payment Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"\",\n  \"payment_status\": \"paid\",\n  \"payment_notes\": \"Payment received successfully\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/update_payment_status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                "update_payment_status"
+              ]
+            },
+            "description": "Update payment status (pending, paid, failed)"
+          }
+        },
+        {
+          "name": "Get Order Statistics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/get_order_stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                "get_order_stats"
+              ]
+            },
+            "description": "Get comprehensive order statistics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments Management",
+      "item": [
+        {
+          "name": "Get All Payments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"payment_status\": \"\",\n  \"payment_method\": \"\",\n  \"sort_by\": \"created_at\",\n  \"sort_order\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/payments/get_all_payments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments",
+                "get_all_payments"
+              ]
+            },
+            "description": "Get paginated list of all payments with filtering"
+          }
+        },
+        {
+          "name": "Update Payment Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_id\": \"\",\n  \"payment_status\": \"completed\",\n  \"payment_notes\": \"Payment processed successfully\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/payments/update_payment_status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments",
+                "update_payment_status"
+              ]
+            },
+            "description": "Update payment status (completed, pending, failed, refunded)"
+          }
+        },
+        {
+          "name": "Process Refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_id\": \"\",\n  \"refund_amount\": 100.00,\n  \"refund_reason\": \"Customer request\",\n  \"refund_notes\": \"Refund processed successfully\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/payments/process_refund",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments",
+                "process_refund"
+              ]
+            },
+            "description": "Process a refund for a payment"
+          }
+        },
+        {
+          "name": "Get Payment Statistics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/payments/get_payment_stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments",
+                "get_payment_stats"
+              ]
+            },
+            "description": "Get comprehensive payment statistics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"user_type\": \"\",\n  \"is_active\": true,\n  \"sort_by\": \"created_at\",\n  \"sort_order\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/get_all_users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "get_all_users"
+              ]
+            },
+            "description": "Get paginated list of all users with filtering"
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile_no\": \"9876543210\",\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"user_type\": \"customer\",\n  \"is_active\": true,\n  \"address\": \"123 Main St\",\n  \"pincode\": \"400001\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/create_user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "create_user"
+              ]
+            },
+            "description": "Create a new user"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"\",\n  \"name\": \"Updated Name\",\n  \"email\": \"updated@example.com\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/update_user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "update_user"
+              ]
+            },
+            "description": "Update existing user details"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/delete_user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "delete_user"
+              ]
+            },
+            "description": "Delete a user"
+          }
+        },
+        {
+          "name": "Get User Statistics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/get_user_stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "get_user_stats"
+              ]
+            },
+            "description": "Get comprehensive user statistics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Banners Management",
+      "item": [
+        {
+          "name": "Get All Banners",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"banner_type\": \"\",\n  \"is_active\": true,\n  \"sort_by\": \"sequence_id\",\n  \"sort_order\": \"asc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/banners/get_all_banners",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "banners",
+                "get_all_banners"
+              ]
+            },
+            "description": "Get paginated list of all banners"
+          }
+        },
+        {
+          "name": "Create Banner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"banner_title\": \"New Banner\",\n  \"banner_description\": \"Banner description\",\n  \"banner_image_url\": \"https://example.com/banner.jpg\",\n  \"banner_type\": \"general\",\n  \"banner_link\": \"https://example.com\",\n  \"sequence_id\": 1,\n  \"is_active\": true,\n  \"start_date\": \"2024-01-01\",\n  \"end_date\": \"2024-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/banners/create_banner",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "banners",
+                "create_banner"
+              ]
+            },
+            "description": "Create a new banner"
+          }
+        },
+        {
+          "name": "Update Banner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"banner_id\": \"\",\n  \"banner_title\": \"Updated Banner\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/banners/update_banner",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "banners",
+                "update_banner"
+              ]
+            },
+            "description": "Update existing banner"
+          }
+        },
+        {
+          "name": "Delete Banner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"banner_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/banners/delete_banner",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "banners",
+                "delete_banner"
+              ]
+            },
+            "description": "Delete a banner"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pincodes Management",
+      "item": [
+        {
+          "name": "Get All Pincodes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"store_code\": \"\",\n  \"is_active\": true,\n  \"sort_by\": \"pincode\",\n  \"sort_order\": \"asc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/get_all_pincodes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "get_all_pincodes"
+              ]
+            },
+            "description": "Get paginated list of all pincodes"
+          }
+        },
+        {
+          "name": "Create Pincode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pincode\": \"400001\",\n  \"area_name\": \"Andheri\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"district\": \"Mumbai Suburban\",\n  \"store_code\": \"\",\n  \"delivery_charge\": 50.00,\n  \"min_order_amount\": 100.00,\n  \"estimated_delivery_days\": 2,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/create_pincode",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "create_pincode"
+              ]
+            },
+            "description": "Create a new pincode for delivery service"
+          }
+        },
+        {
+          "name": "Update Pincode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pincode_id\": \"\",\n  \"delivery_charge\": 60.00,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/update_pincode",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "update_pincode"
+              ]
+            },
+            "description": "Update existing pincode details"
+          }
+        },
+        {
+          "name": "Delete Pincode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pincode_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/delete_pincode",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "delete_pincode"
+              ]
+            },
+            "description": "Delete a pincode"
+          }
+        },
+        {
+          "name": "Check Pincode Serviceability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pincode\": \"400001\",\n  \"store_code\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/pincodes/check_pincode_serviceability",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pincodes",
+                "check_pincode_serviceability"
+              ]
+            },
+            "description": "Check if a pincode is serviceable for delivery"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://ecom-api-ozl0.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
