@@ -91,11 +91,41 @@ router.post('/validate_otp', async (req, res) => {
       });
     }
 
+    const usersCollection = mongoose.connection.db.collection('users');
+
+    // Check if user exists, if not create one
+    let user = await usersCollection.findOne({ mobile_no: mobileNo.toString() });
+
+    if (!user) {
+      // Create new user
+      const newUser = {
+        mobile_no: mobileNo.toString(),
+        name: '',
+        email: '',
+        user_type: 'customer',
+        is_active: true,
+        addresses: [],
+        created_at: new Date(),
+        updated_at: new Date(),
+        last_login: new Date()
+      };
+
+      const result = await usersCollection.insertOne(newUser);
+      user = { ...newUser, _id: result.insertedId };
+    } else {
+      // Update last login
+      await usersCollection.updateOne(
+        { _id: user._id },
+        { $set: { last_login: new Date(), updated_at: new Date() } }
+      );
+    }
+
     // Generate JWT token for authenticated user
     const tokenPayload = {
       mobile_no: mobileNo,
       project_code: project_code,
-      user_type: 'customer',
+      user_type: user.user_type,
+      user_id: user._id.toString(),
       login_time: new Date().toISOString()
     };
 
@@ -110,7 +140,9 @@ router.post('/validate_otp', async (req, res) => {
         token: token,
         token_type: 'Bearer',
         expires_in: process.env.JWT_EXPIRE || '7d',
-        user_authenticated: true
+        user_authenticated: true,
+        user_exists: !!user,
+        user_created: !user
       }
     });
 

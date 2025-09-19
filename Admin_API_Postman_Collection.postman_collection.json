@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "admin-api-collection",
-    "name": "Admin API Collection - E-commerce Admin Panel",
-    "description": "Complete collection of admin API endpoints for e-commerce platform management with JWT authentication",
+    "_postman_id": "admin-customer-api-collection",
+    "name": "Complete E-commerce API Collection - Admin & Customer",
+    "description": "Complete collection of admin and customer API endpoints for e-commerce platform with centralized users system and JWT authentication",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "admin-api-testing",
+    "_exporter_id": "api-testing",
     "_collection_link": "https://ecom-api-ozl0.onrender.com"
   },
   "item": [
@@ -190,6 +190,155 @@
               ]
             },
             "description": "Logout admin user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer Authentication",
+      "item": [
+        {
+          "name": "Get OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobileNo\": \"9702901943\",\n  \"project_code\": \"TEST\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/get_otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "get_otp"
+              ]
+            },
+            "description": "Request OTP for mobile number authentication"
+          }
+        },
+        {
+          "name": "Validate OTP & Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobileNo\": \"9702901943\",\n  \"otp\": \"1234\",\n  \"project_code\": \"TEST\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/validate_otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "validate_otp"
+              ]
+            },
+            "description": "Validate OTP and get JWT token. Demo OTP: 1234. Creates user automatically if not exists."
+          }
+        },
+        {
+          "name": "Verify Customer Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{customer_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify_token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify_token"
+              ]
+            },
+            "description": "Verify if the customer token is valid"
+          }
+        },
+        {
+          "name": "Refresh Customer Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{customer_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh_token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh_token"
+              ]
+            },
+            "description": "Refresh the customer JWT token"
+          }
+        },
+        {
+          "name": "Customer Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Logout customer user"
           }
         }
       ]
@@ -1416,6 +1565,39 @@
           }
         },
         {
+          "name": "Get User by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/get_user_by_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "get_user_by_id"
+              ]
+            },
+            "description": "Get specific user details by ID"
+          }
+        },
+        {
           "name": "Create User",
           "request": {
             "method": "POST",
@@ -1515,6 +1697,39 @@
           }
         },
         {
+          "name": "Bulk Update Users",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_ids\": [\"user_id_1\", \"user_id_2\"],\n  \"update_data\": {\n    \"is_active\": false,\n    \"user_type\": \"customer\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/bulk_update_users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "bulk_update_users"
+              ]
+            },
+            "description": "Bulk update multiple users"
+          }
+        },
+        {
           "name": "Get User Statistics",
           "request": {
             "method": "POST",
@@ -1545,6 +1760,203 @@
               ]
             },
             "description": "Get comprehensive user statistics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer User Management",
+      "item": [
+        {
+          "name": "Get Customer Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_code\": \"KLK\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/get_customer_profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "get_customer_profile"
+              ]
+            },
+            "description": "Get authenticated customer's profile information"
+          }
+        },
+        {
+          "name": "Update Customer Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email_id\": \"john@example.com\",\n  \"store_code\": \"KLK\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/add_update_customer_profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "add_update_customer_profile"
+              ]
+            },
+            "description": "Update customer profile information (name, email)"
+          }
+        },
+        {
+          "name": "Add Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_code\": \"KLK\",\n  \"full_name\": \"John Doe\",\n  \"delivery_addr_line_1\": \"123 Main Street\",\n  \"delivery_addr_line_2\": \"Near Park\",\n  \"delivery_addr_city\": \"Mumbai\",\n  \"delivery_addr_pincode\": \"400001\",\n  \"is_default\": \"Yes\",\n  \"latitude\": \"19.0760\",\n  \"longitude\": \"72.8777\",\n  \"area_id\": \"Andheri West\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/add_address",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "add_address"
+              ]
+            },
+            "description": "Add a new delivery address for the customer"
+          }
+        },
+        {
+          "name": "Get Address List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_code\": \"KLK\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/get_address_list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "get_address_list"
+              ]
+            },
+            "description": "Get all delivery addresses for the authenticated customer"
+          }
+        },
+        {
+          "name": "Add/Remove Favorite",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_code\": \"672\",\n  \"store_code\": \"KLK\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/add_remove_to_favorites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "add_remove_to_favorites"
+              ]
+            },
+            "description": "Add or remove a product from customer's favorites"
+          }
+        },
+        {
+          "name": "Get Favorite Items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_code\": \"KLK\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/get_favorite_items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "get_favorite_items"
+              ]
+            },
+            "description": "Get all favorite products for the authenticated customer"
           }
         }
       ]
@@ -2332,6 +2744,11 @@
     },
     {
       "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_token",
       "value": "",
       "type": "string"
     }

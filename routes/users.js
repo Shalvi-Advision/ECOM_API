@@ -18,10 +18,20 @@ router.post('/add_remove_to_favorites', protect, async (req, res) => {
     }
 
     const favoritesCollection = mongoose.connection.db.collection('favorites');
+    const usersCollection = mongoose.connection.db.collection('users');
+
+    // Find user by mobile number to get user_id
+    const user = await usersCollection.findOne({ mobile_no: mobile_no });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
 
     // Check if product is already in favorites
     const existingFavorite = await favoritesCollection.findOne({
-      mobile_no: mobile_no,
+      user_id: user._id,
       p_code: p_code.toString(),
       store_code: store_code
     });
@@ -29,7 +39,7 @@ router.post('/add_remove_to_favorites', protect, async (req, res) => {
     if (existingFavorite) {
       // Remove from favorites
       await favoritesCollection.deleteOne({
-        mobile_no: mobile_no,
+        user_id: user._id,
         p_code: p_code.toString(),
         store_code: store_code
       });
@@ -46,7 +56,8 @@ router.post('/add_remove_to_favorites', protect, async (req, res) => {
     } else {
       // Add to favorites
       const favoriteData = {
-        mobile_no: mobile_no,
+        user_id: user._id, // Reference to users collection
+        mobile_no: mobile_no, // Keep for backward compatibility
         p_code: p_code.toString(),
         store_code: store_code,
         project_code: project_code,
@@ -91,10 +102,22 @@ router.post('/get_favorite_items', protect, async (req, res) => {
 
     const favoritesCollection = mongoose.connection.db.collection('favorites');
     const productsCollection = mongoose.connection.db.collection('products');
+    const usersCollection = mongoose.connection.db.collection('users');
+
+    // Find user by mobile number to get user_id
+    const user = await usersCollection.findOne({ mobile_no: mobile_no });
+    if (!user) {
+      return res.json({
+        success: true,
+        message: 'No favorite items found',
+        data: [],
+        count: 0
+      });
+    }
 
     // Get user's favorite items
     const favorites = await favoritesCollection.find({
-      mobile_no: mobile_no,
+      user_id: user._id,
       store_code: store_code
     }).toArray();
 
@@ -158,14 +181,24 @@ router.post('/add_address', protect, async (req, res) => {
     }
 
     const addressbooksCollection = mongoose.connection.db.collection('addressbooks');
+    const usersCollection = mongoose.connection.db.collection('users');
+
+    // Find user by mobile number to get user_id
+    const user = await usersCollection.findOne({ mobile_no: mobile_number });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
 
     const addressData = {
       idaddress_book: idaddress_book || `ADDR${Date.now()}`,
+      user_id: user._id, // Reference to users collection
       store_code,
       project_code,
       full_name,
-      access_key,
-      mobile_number,
+      mobile_number, // Keep for backward compatibility
       email_id,
       delivery_addr_line_1,
       delivery_addr_line_2,
@@ -214,9 +247,21 @@ router.post('/get_address_list', protect, async (req, res) => {
     }
 
     const addressbooksCollection = mongoose.connection.db.collection('addressbooks');
+    const usersCollection = mongoose.connection.db.collection('users');
+
+    // Find user by mobile number to get user_id
+    const user = await usersCollection.findOne({ mobile_no: mobile_no });
+    if (!user) {
+      return res.json({
+        success: true,
+        message: 'No addresses found',
+        data: [],
+        count: 0
+      });
+    }
 
     const addresses = await addressbooksCollection.find({
-      mobile_number: mobile_no,
+      user_id: user._id,
       store_code: store_code
     }).toArray();
 
@@ -307,49 +352,47 @@ router.post('/add_update_customer_profile', protect, async (req, res) => {
       });
     }
 
-    const addressbooksCollection = mongoose.connection.db.collection('addressbooks');
+    const usersCollection = mongoose.connection.db.collection('users');
 
-    // Check if customer profile exists
-    const existingProfile = await addressbooksCollection.findOne({
-      mobile_number: mobile_number
+    // Check if user exists
+    const existingUser = await usersCollection.findOne({
+      mobile_no: mobile_number
     });
 
-    const profileData = {
-      first_name,
-      last_name,
-      mobile_number,
-      email_id,
-      store_code,
-      project_code,
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update user profile
+    const updateData = {
+      name: first_name && last_name ? `${first_name} ${last_name}` : (first_name || last_name || existingUser.name),
+      email: email_id || existingUser.email,
       updated_at: new Date()
     };
 
-    if (existingProfile) {
-      // Update existing profile
-      await addressbooksCollection.updateOne(
-        { _id: existingProfile._id },
-        { $set: profileData }
-      );
+    await usersCollection.updateOne(
+      { _id: existingUser._id },
+      { $set: updateData }
+    );
 
-      res.json({
-        success: true,
-        message: 'Customer profile updated successfully',
-        data: profileData
-      });
-    } else {
-      // Create new profile
-      profileData.created_at = new Date();
-      const result = await addressbooksCollection.insertOne(profileData);
+    // Get updated user
+    const updatedUser = await usersCollection.findOne({ _id: existingUser._id });
 
-      res.json({
-        success: true,
-        message: 'Customer profile created successfully',
-        data: {
-          profile_id: result.insertedId,
-          profile_details: profileData
-        }
-      });
-    }
+    res.json({
+      success: true,
+      message: 'Customer profile updated successfully',
+      data: {
+        mobile_no: updatedUser.mobile_no,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        user_type: updatedUser.user_type,
+        is_active: updatedUser.is_active,
+        updated_at: updatedUser.updated_at
+      }
+    });
 
   } catch (error) {
     console.error('Error managing customer profile:', error);
@@ -374,14 +417,13 @@ router.post('/get_customer_profile', protect, async (req, res) => {
       });
     }
 
-    const addressbooksCollection = mongoose.connection.db.collection('addressbooks');
+    const usersCollection = mongoose.connection.db.collection('users');
 
-    const profile = await addressbooksCollection.findOne({
-      mobile_number: mobile_number,
-      store_code: store_code
+    const user = await usersCollection.findOne({
+      mobile_no: mobile_number
     });
 
-    if (!profile) {
+    if (!user) {
       return res.json({
         success: false,
         message: 'Customer profile not found',
@@ -389,10 +431,26 @@ router.post('/get_customer_profile', protect, async (req, res) => {
       });
     }
 
+    // Split name into first and last name for backward compatibility
+    const nameParts = user.name ? user.name.split(' ') : ['', ''];
+    const first_name = nameParts[0] || '';
+    const last_name = nameParts.slice(1).join(' ') || '';
+
     res.json({
       success: true,
       message: 'Customer profile retrieved successfully',
-      data: profile
+      data: {
+        mobile_no: user.mobile_no,
+        first_name,
+        last_name,
+        full_name: user.name,
+        email_id: user.email,
+        user_type: user.user_type,
+        is_active: user.is_active,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+        last_login: user.last_login
+      }
     });
 
   } catch (error) {
