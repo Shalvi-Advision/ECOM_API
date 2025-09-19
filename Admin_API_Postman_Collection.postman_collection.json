@@ -1582,7 +1582,7 @@
                 "get_all_banners"
               ]
             },
-            "description": "Get paginated list of all banners from bannermasters collection. API returns transformed data with generated banner_title and banner_description based on database fields."
+            "description": "Get paginated list of all banners from banners collection. API returns transformed data with generated banner_title and banner_description based on database fields."
           }
         },
         {
@@ -1615,7 +1615,7 @@
                 "create_banner"
               ]
             },
-            "description": "Create a new banner in bannermasters collection. banner_title and banner_description are optional (API generates them). Required: banner_image_url. Maps to database fields: banner_image_url→banner_img, banner_link→redirect_link, banner_type_id→banner_type_id (numeric), is_active→\"Enabled\"/\"Disabled\""
+            "description": "Create a new banner in banners collection. banner_title and banner_description are optional (API generates them). Required: banner_image_url. Maps to database fields: banner_image_url→banner_img, banner_link→redirect_link, banner_type_id→banner_type_id (numeric), is_active→\"Enabled\"/\"Disabled\""
           }
         },
         {
@@ -1648,7 +1648,7 @@
                 "update_banner"
               ]
             },
-            "description": "Update existing banner in bannermasters collection. Only include fields you want to update. Field mappings: banner_image_url→banner_img, banner_link→redirect_link, banner_type_id→banner_type_id (numeric), is_active→\"Enabled\"/\"Disabled\""
+            "description": "Update existing banner in banners collection. Only include fields you want to update. Field mappings: banner_image_url→banner_img, banner_link→redirect_link, banner_type_id→banner_type_id (numeric), is_active→\"Enabled\"/\"Disabled\""
           }
         },
         {
@@ -1681,7 +1681,7 @@
                 "get_banner_by_id"
               ]
             },
-            "description": "Get specific banner details by ID from bannermasters collection. Returns transformed data with generated banner_title and banner_description."
+            "description": "Get specific banner details by ID from banners collection. Returns transformed data with generated banner_title and banner_description."
           }
         },
         {
@@ -1714,7 +1714,7 @@
                 "delete_banner"
               ]
             },
-            "description": "Delete a banner from bannermasters collection. Returns transformed banner data in the response."
+            "description": "Delete a banner from banners collection. Returns transformed banner data in the response."
           }
         },
         {
@@ -1747,7 +1747,7 @@
                 "bulk_update_banners"
               ]
             },
-            "description": "Bulk update multiple banners in bannermasters collection. Field mappings apply: banner_image_url→banner_img, banner_link→redirect_link, banner_type_id→banner_type_id (numeric), is_active→\"Enabled\"/\"Disabled\""
+            "description": "Bulk update multiple banners in banners collection. Field mappings apply: banner_image_url→banner_img, banner_link→redirect_link, banner_type_id→banner_type_id (numeric), is_active→\"Enabled\"/\"Disabled\""
           }
         },
         {
@@ -1780,7 +1780,7 @@
                 "get_active_banners"
               ]
             },
-            "description": "Get active banners (is_active='Enabled') from bannermasters collection. Returns transformed data for frontend compatibility. Supports filtering by banner_type_id and store_code."
+            "description": "Get active banners (is_active='Enabled') from banners collection. Returns transformed data for frontend compatibility. Supports filtering by banner_type_id and store_code."
           }
         }
       ]

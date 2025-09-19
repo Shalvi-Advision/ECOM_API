@@ -46,7 +46,7 @@ router.post('/get_all_banners', async (req, res) => {
   try {
     const { page = 1, limit = 50, search, banner_type_id, is_active, store_code, sort_by = 'sequence_id', sort_order = 'asc' } = req.body;
 
-    const bannersCollection = mongoose.connection.db.collection('bannermasters');
+    const bannersCollection = mongoose.connection.db.collection('banners');
 
     // Build query
     const query = {};
@@ -145,7 +145,7 @@ router.post('/get_banner_by_id', async (req, res) => {
       });
     }
 
-    const bannersCollection = mongoose.connection.db.collection('bannermasters');
+    const bannersCollection = mongoose.connection.db.collection('banners');
 
     const banner = await bannersCollection.findOne({
       _id: new mongoose.Types.ObjectId(banner_id)
@@ -214,7 +214,7 @@ router.post('/create_banner', async (req, res) => {
       });
     }
 
-    const bannersCollection = mongoose.connection.db.collection('bannermasters');
+    const bannersCollection = mongoose.connection.db.collection('banners');
 
     // Determine banner_type_id
     let finalBannerTypeId = banner_type_id;
@@ -295,7 +295,7 @@ router.post('/update_banner', async (req, res) => {
       });
     }
 
-    const bannersCollection = mongoose.connection.db.collection('bannermasters');
+    const bannersCollection = mongoose.connection.db.collection('banners');
 
     // Check if banner exists
     const existingBanner = await bannersCollection.findOne({
@@ -399,7 +399,7 @@ router.post('/delete_banner', async (req, res) => {
       });
     }
 
-    const bannersCollection = mongoose.connection.db.collection('bannermasters');
+    const bannersCollection = mongoose.connection.db.collection('banners');
 
     // Check if banner exists
     const existingBanner = await bannersCollection.findOne({
@@ -476,7 +476,7 @@ router.post('/bulk_update_banners', async (req, res) => {
       });
     }
 
-    const bannersCollection = mongoose.connection.db.collection('bannermasters');
+    const bannersCollection = mongoose.connection.db.collection('banners');
 
     // Convert string IDs to ObjectIds
     const objectIds = banner_ids.map(id => new mongoose.Types.ObjectId(id));
@@ -538,7 +538,7 @@ router.post('/get_active_banners', async (req, res) => {
   try {
     const { banner_type_id, banner_type, limit = 10, store_code } = req.body;
 
-    const bannersCollection = mongoose.connection.db.collection('bannermasters');
+    const bannersCollection = mongoose.connection.db.collection('banners');
 
     const query = {
       is_active: 'Enabled'
