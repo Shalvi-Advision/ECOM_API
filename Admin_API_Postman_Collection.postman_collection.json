@@ -1568,7 +1568,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"banner_type\": \"\",\n  \"is_active\": true,\n  \"sort_by\": \"sequence_id\",\n  \"sort_order\": \"asc\"\n}"
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"search\": \"\",\n  \"banner_type_id\": \"\",\n  \"store_code\": \"\",\n  \"is_active\": true,\n  \"sort_by\": \"sequence_id\",\n  \"sort_order\": \"asc\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/admin/banners/get_all_banners",
@@ -1582,7 +1582,7 @@
                 "get_all_banners"
               ]
             },
-            "description": "Get paginated list of all banners"
+            "description": "Get paginated list of all banners from bannermasters collection. API returns transformed data with generated banner_title and banner_description based on database fields."
           }
         },
         {
@@ -1601,7 +1601,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"banner_title\": \"New Banner\",\n  \"banner_description\": \"Banner description\",\n  \"banner_image_url\": \"https://example.com/banner.jpg\",\n  \"banner_type\": \"general\",\n  \"banner_link\": \"https://example.com\",\n  \"sequence_id\": 1,\n  \"is_active\": true,\n  \"start_date\": \"2024-01-01\",\n  \"end_date\": \"2024-12-31\"\n}"
+              "raw": "{\n  \"banner_title\": \"New Banner\",\n  \"banner_description\": \"Banner description\",\n  \"banner_image_url\": \"https://patelrmart.com/mgmt_panel/sites/default/files/banner_mgmt/banners/banner_for_mobile/sample_banner.jpg\",\n  \"banner_type\": \"general\",\n  \"banner_type_id\": 1,\n  \"banner_link\": \"/\",\n  \"sequence_id\": 1,\n  \"store_code\": \"AME\",\n  \"banner_bg_color\": \"#FFFFFF\",\n  \"is_active\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/admin/banners/create_banner",
@@ -1615,7 +1615,7 @@
                 "create_banner"
               ]
             },
-            "description": "Create a new banner"
+            "description": "Create a new banner in bannermasters collection. banner_title and banner_description are optional (API generates them). Required: banner_image_url. Maps to database fields: banner_image_url→banner_img, banner_link→redirect_link, banner_type_id→banner_type_id (numeric), is_active→\"Enabled\"/\"Disabled\""
           }
         },
         {
@@ -1634,7 +1634,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"banner_id\": \"\",\n  \"banner_title\": \"Updated Banner\",\n  \"is_active\": true\n}"
+              "raw": "{\n  \"banner_id\": \"\",\n  \"banner_image_url\": \"https://patelrmart.com/mgmt_panel/sites/default/files/banner_mgmt/banners/banner_for_mobile/updated_banner.jpg\",\n  \"banner_type_id\": 2,\n  \"banner_link\": \"/products\",\n  \"sequence_id\": 2,\n  \"store_code\": \"AMW\",\n  \"banner_bg_color\": \"#E3F2FD\",\n  \"is_active\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/admin/banners/update_banner",
@@ -1648,7 +1648,40 @@
                 "update_banner"
               ]
             },
-            "description": "Update existing banner"
+            "description": "Update existing banner in bannermasters collection. Only include fields you want to update. Field mappings: banner_image_url→banner_img, banner_link→redirect_link, banner_type_id→banner_type_id (numeric), is_active→\"Enabled\"/\"Disabled\""
+          }
+        },
+        {
+          "name": "Get Banner by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"banner_id\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/banners/get_banner_by_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "banners",
+                "get_banner_by_id"
+              ]
+            },
+            "description": "Get specific banner details by ID from bannermasters collection. Returns transformed data with generated banner_title and banner_description."
           }
         },
         {
@@ -1681,7 +1714,73 @@
                 "delete_banner"
               ]
             },
-            "description": "Delete a banner"
+            "description": "Delete a banner from bannermasters collection. Returns transformed banner data in the response."
+          }
+        },
+        {
+          "name": "Bulk Update Banners",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"banner_ids\": [\"banner_id_1\", \"banner_id_2\"],\n  \"update_data\": {\n    \"banner_type_id\": 2,\n    \"is_active\": false,\n    \"store_code\": \"AMW\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/banners/bulk_update_banners",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "banners",
+                "bulk_update_banners"
+              ]
+            },
+            "description": "Bulk update multiple banners in bannermasters collection. Field mappings apply: banner_image_url→banner_img, banner_link→redirect_link, banner_type_id→banner_type_id (numeric), is_active→\"Enabled\"/\"Disabled\""
+          }
+        },
+        {
+          "name": "Get Active Banners",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"banner_type_id\": 1,\n  \"store_code\": \"AME\",\n  \"limit\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/banners/get_active_banners",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "banners",
+                "get_active_banners"
+              ]
+            },
+            "description": "Get active banners (is_active='Enabled') from bannermasters collection. Returns transformed data for frontend compatibility. Supports filtering by banner_type_id and store_code."
           }
         }
       ]
